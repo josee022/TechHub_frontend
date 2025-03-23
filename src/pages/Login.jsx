@@ -3,11 +3,9 @@ import { Button, TextField, Typography, Container, Paper, Box } from "@mui/mater
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../service/api";
-import useStore from "../store/useStore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const setUser = useStore((state) => state.setUser);
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +20,7 @@ const LoginPage = () => {
       const token = res.access;
 
       localStorage.setItem("token", token);
-      setUser({ username }); // Aquí podrías guardar más datos si los obtienes luego
+      localStorage.setItem("username", username);
 
       navigate("/products");
     } catch (err) {
@@ -30,6 +28,7 @@ const LoginPage = () => {
       setError("Credenciales incorrectas.");
     }
   };
+
 
   return (
     <div className="bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 min-h-screen flex justify-center items-center">
