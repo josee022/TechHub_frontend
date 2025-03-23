@@ -1,39 +1,56 @@
 import React, { useState } from "react";
-import { Button, TextField, Typography, Container, Paper, Box } from "@mui/material";
-import { motion } from "framer-motion"; // Para animaciones
-import { Link } from "react-router-dom"; // Enlace para redirigir a login
+import {
+  Button,
+  TextField,
+  Typography,
+  Container,
+  Paper,
+  Box,
+} from "@mui/material";
+import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
+import { registerUser, loginUser } from "../service/api";
+import useStore from "../store/useStore";
 
 const RegisterPage = () => {
+  const navigate = useNavigate();
+  const setUser = useStore((state) => state.setUser);
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [bio, setBio] = useState("");
-  const [location, setLocation] = useState("");
   const [error, setError] = useState("");
 
-  // Función para manejar el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Validación de contraseñas
     if (password !== confirmPassword) {
       setError("Las contraseñas no coinciden");
       return;
     }
 
-    // Aquí puedes enviar la solicitud al backend para crear el usuario
     try {
-      console.log("Registrando usuario:", { username, email, password, bio, location });
+      // 1️⃣ Registro
+      await registerUser({ username, email, password });
 
-      // Enviar solicitud al backend (esto es solo un ejemplo)
-      // await axios.post('/api/users/register', { username, email, password, bio, location });
+      // 2️⃣ Login automático
+      const res = await loginUser({ username, password });
+      const token = res.access;
 
-      // Si el registro es exitoso, redirige al usuario al login
-      // history.push("/login"); // Redirige a la página de login
+      // 3️⃣ Guardar token y usuario
+      localStorage.setItem("token", token);
+      setUser({ username }); // puedes reemplazar con más info si la tienes
+
+      // 4️⃣ Redirigir
+      navigate("/products");
     } catch (err) {
-      setError("Error al registrar el usuario. Inténtalo de nuevo.");
+      console.error("Error al registrar:", err);
+      if (err.response?.data) {
+        console.log("Detalles del error:", err.response.data);
+      }
+      setError("Error al registrar. Verifica los datos.");
     }
   };
 
@@ -46,27 +63,27 @@ const RegisterPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <Typography variant="h4" className="text-center font-bold text-gray-800 mb-6">
+            <Typography
+              variant="h4"
+              className="text-center font-bold text-gray-800 mb-6"
+            >
               Regístrate en TechHub
             </Typography>
             <Typography className="text-center text-gray-600 mb-8">
-              Únete a nuestra plataforma para gestionar tus dispositivos IoT de manera eficiente.
+              Únete a nuestra plataforma para gestionar tus dispositivos IoT de
+              manera eficiente.
             </Typography>
 
-            {/* Formulario de registro */}
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Campo para el nombre de usuario */}
               <TextField
                 label="Nombre de usuario"
                 variant="outlined"
                 fullWidth
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="input-field"
                 required
               />
 
-              {/* Campo para el correo electrónico */}
               <TextField
                 label="Correo electrónico"
                 variant="outlined"
@@ -74,11 +91,9 @@ const RegisterPage = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
                 required
               />
 
-              {/* Campo para la contraseña */}
               <TextField
                 label="Contraseña"
                 variant="outlined"
@@ -86,11 +101,9 @@ const RegisterPage = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
                 required
               />
 
-              {/* Campo para confirmar la contraseña */}
               <TextField
                 label="Confirmar Contraseña"
                 variant="outlined"
@@ -98,38 +111,15 @@ const RegisterPage = () => {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="input-field"
                 required
               />
 
-              {/* Campo para la biografía */}
-              <TextField
-                label="Biografía (Opcional)"
-                variant="outlined"
-                fullWidth
-                multiline
-                rows={4}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="input-field"
-              />
-
-              {/* Campo para la ubicación */}
-              <TextField
-                label="Ubicación (Opcional)"
-                variant="outlined"
-                fullWidth
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                className="input-field"
-              />
-
-              {/* Mostrar error si lo hay */}
               {error && (
-                <Typography className="text-red-500 text-center">{error}</Typography>
+                <Typography className="text-red-500 text-center">
+                  {error}
+                </Typography>
               )}
 
-              {/* Botón de registro */}
               <Button
                 type="submit"
                 variant="contained"
@@ -140,7 +130,6 @@ const RegisterPage = () => {
                 Registrarse
               </Button>
 
-              {/* Link a la vista de login */}
               <div className="text-center mt-4">
                 <Typography className="text-gray-600">
                   ¿Ya tienes una cuenta?{" "}
@@ -151,6 +140,15 @@ const RegisterPage = () => {
               </div>
             </form>
           </motion.div>
+
+          <Box className="mt-12 text-center text-gray-600">
+            <Typography variant="body2" className="font-medium mb-4">
+              TechHub es tu solución completa para gestionar dispositivos IoT con facilidad y eficiencia.
+            </Typography>
+            <Typography variant="body2" className="font-light">
+              Únete a miles de usuarios que ya confían en nuestra plataforma para monitorear, controlar y analizar sus dispositivos IoT.
+            </Typography>
+          </Box>
         </Paper>
       </Container>
     </div>
