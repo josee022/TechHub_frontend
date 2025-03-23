@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ProductsPage from "./pages/Products";
+import PrivateRoute from "./components/routes/Privateroute"; // 👈 importa el componente
 
 function App() {
   return (
@@ -10,7 +11,16 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/products" element={<ProductsPage />} />
+
+      {/* 🛡 Ruta protegida */}
+      <Route
+        path="/products"
+        element={
+          <PrivateRoute>
+            <ProductsPage />
+          </PrivateRoute>
+        }
+      />
     </Routes>
   );
 }
