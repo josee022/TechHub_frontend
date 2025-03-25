@@ -20,7 +20,7 @@ const ProductCard = ({ device }) => {
 
         {/* Descripción del dispositivo */}
         <Typography variant="body2" className="text-gray-700 mb-4">
-          {device.descripcion ? device.descripcion.substring(0, 100) + "..." : "No hay descripción disponible."}
+          {device.descripcion ? device.descripcion.substring(0, 50) + "..." : "No hay descripción disponible."}
         </Typography>
 
         {/* Botón para ver detalles */}

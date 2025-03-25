@@ -1,29 +1,34 @@
 import React, { useState } from "react";
 import { Button, TextField, Typography, Container, Paper, Box } from "@mui/material";
-import { motion } from "framer-motion"; // Para animaciones
-import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../service/api";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Función para manejar el envío del formulario
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Aquí va la lógica para hacer el login con la API
-    // Puedes usar axios para hacer la solicitud a tu API
     try {
-      // Simulando un request
-      console.log("Enviando credenciales:", { email, password });
-      // Si el login es exitoso, redirige al usuario
-      // history.push("/products");  // Usa el hook history para redirigir a la vista de productos
+      const res = await loginUser({ username, password });
+      const token = res.access;
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", username);
+
+      navigate("/products");
     } catch (err) {
-      setError("Credenciales incorrectas");
+      console.error("Error al iniciar sesión:", err);
+      setError("Credenciales incorrectas.");
     }
   };
+
 
   return (
     <div className="bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 min-h-screen flex justify-center items-center">
@@ -41,21 +46,16 @@ const LoginPage = () => {
               Bienvenido a <span className="font-bold text-indigo-600">TechHub</span>, la plataforma de gestión de dispositivos IoT.
             </Typography>
 
-            {/* Formulario de login */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Campo para el correo electrónico */}
+            <form onSubmit={handleLogin} className="space-y-6">
               <TextField
-                label="Correo electrónico"
+                label="Nombre de usuario"
                 variant="outlined"
                 fullWidth
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
               />
 
-              {/* Campo para la contraseña */}
               <TextField
                 label="Contraseña"
                 variant="outlined"
@@ -63,16 +63,13 @@ const LoginPage = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
                 required
               />
 
-              {/* Mostrar error si lo hay */}
               {error && (
                 <Typography className="text-red-500 text-center">{error}</Typography>
               )}
 
-              {/* Botón de login */}
               <Button
                 type="submit"
                 variant="contained"
@@ -83,7 +80,6 @@ const LoginPage = () => {
                 Iniciar sesión
               </Button>
 
-              {/* Link a la vista de registro */}
               <div className="text-center mt-4">
                 <Typography className="text-gray-600">
                   ¿No tienes una cuenta?{" "}
@@ -95,8 +91,7 @@ const LoginPage = () => {
             </form>
           </motion.div>
 
-          {/* Información adicional de la empresa */}
-          <Box className="mt-12 text-center text-white">
+          <Box className="mt-12 text-center text-gray-600">
             <Typography variant="body2" className="font-medium mb-4">
               TechHub es tu solución completa para gestionar dispositivos IoT con facilidad y eficiencia.
             </Typography>

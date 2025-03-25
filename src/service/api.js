@@ -1,12 +1,18 @@
 import axios from 'axios';
 
-// URL base de la API (ajústala según la configuración de tu backend)
-const API_URL = 'http://localhost:8000/api'; // Reemplaza con la URL correcta
+const API_URL = 'http://localhost:8000/api';
 
-// Función para obtener todos los dispositivos IoT
+// 🔐 Utilidad para headers con token
+const authHeader = () => ({
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
+
+// 📡 Obtener todos los dispositivos (requiere login)
 export const getAllDevices = async () => {
   try {
-    const response = await axios.get(`${API_URL}/devices/`);
+    const response = await axios.get(`${API_URL}/devices/`, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al obtener los dispositivos:', error);
@@ -14,10 +20,10 @@ export const getAllDevices = async () => {
   }
 };
 
-// Función para crear un nuevo dispositivo IoT
+// ➕ Crear un nuevo dispositivo (requiere admin)
 export const createDevice = async (deviceData) => {
   try {
-    const response = await axios.post(`${API_URL}/devices/`, deviceData);
+    const response = await axios.post(`${API_URL}/devices/`, deviceData, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al crear el dispositivo:', error);
@@ -25,10 +31,10 @@ export const createDevice = async (deviceData) => {
   }
 };
 
-// Función para obtener un dispositivo IoT específico por ID
+// 🔍 Obtener detalles de un dispositivo
 export const getDeviceDetails = async (deviceId) => {
   try {
-    const response = await axios.get(`${API_URL}/devices/${deviceId}/`);
+    const response = await axios.get(`${API_URL}/devices/${deviceId}/`, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al obtener el dispositivo:', error);
@@ -36,10 +42,10 @@ export const getDeviceDetails = async (deviceId) => {
   }
 };
 
-// Función para actualizar un dispositivo IoT
+// 🔄 Actualizar un dispositivo completo
 export const updateDevice = async (deviceId, deviceData) => {
   try {
-    const response = await axios.put(`${API_URL}/devices/${deviceId}/`, deviceData);
+    const response = await axios.put(`${API_URL}/devices/${deviceId}/`, deviceData, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al actualizar el dispositivo:', error);
@@ -47,10 +53,10 @@ export const updateDevice = async (deviceId, deviceData) => {
   }
 };
 
-// Función para realizar un patch a un dispositivo IoT (actualización parcial)
+// ✏️ Patch (actualización parcial) del dispositivo
 export const patchDevice = async (deviceId, deviceData) => {
   try {
-    const response = await axios.patch(`${API_URL}/devices/${deviceId}/`, deviceData);
+    const response = await axios.patch(`${API_URL}/devices/${deviceId}/`, deviceData, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al hacer patch al dispositivo:', error);
@@ -58,10 +64,10 @@ export const patchDevice = async (deviceId, deviceData) => {
   }
 };
 
-// Función para eliminar un dispositivo IoT
+// ❌ Eliminar dispositivo
 export const deleteDevice = async (deviceId) => {
   try {
-    const response = await axios.delete(`${API_URL}/devices/${deviceId}/`);
+    const response = await axios.delete(`${API_URL}/devices/${deviceId}/`, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al eliminar el dispositivo:', error);
@@ -69,7 +75,7 @@ export const deleteDevice = async (deviceId) => {
   }
 };
 
-// Función para registrar un nuevo usuario
+// 👤 Registrar nuevo usuario
 export const registerUser = async (userData) => {
   try {
     const response = await axios.post(`${API_URL}/users/register/`, userData);
@@ -80,7 +86,7 @@ export const registerUser = async (userData) => {
   }
 };
 
-// Función para iniciar sesión
+// 🔐 Iniciar sesión (retorna tokens)
 export const loginUser = async (loginData) => {
   try {
     const response = await axios.post(`${API_URL}/users/login/`, loginData);
@@ -91,10 +97,10 @@ export const loginUser = async (loginData) => {
   }
 };
 
-// Función para cerrar sesión
+// 🔒 Cerrar sesión
 export const logoutUser = async () => {
   try {
-    const response = await axios.post(`${API_URL}/users/logout/`);
+    const response = await axios.post(`${API_URL}/users/logout/`, null, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al cerrar sesión:', error);
@@ -102,10 +108,10 @@ export const logoutUser = async () => {
   }
 };
 
-// Función para obtener el perfil del usuario
+// 📄 Obtener tu perfil
 export const getUserProfile = async () => {
   try {
-    const response = await axios.get(`${API_URL}/users/profile/`);
+    const response = await axios.get(`${API_URL}/users/profile/`, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al obtener el perfil del usuario:', error);
@@ -113,10 +119,20 @@ export const getUserProfile = async () => {
   }
 };
 
-// Función para actualizar el perfil del usuario
+// ✏️ Actualizar tu perfil
 export const updateUserProfile = async (profileData) => {
   try {
-    const response = await axios.put(`${API_URL}/users/profile/`, profileData);
+    // Añadimos el header correcto para FormData
+    const headers = {
+      ...authHeader().headers,
+      'Content-Type': 'multipart/form-data',
+    };
+
+    const response = await axios.put(
+      `${API_URL}/users/profile/`, 
+      profileData,
+      { headers }
+    );
     return response.data;
   } catch (error) {
     console.error('Error al actualizar el perfil del usuario:', error);
@@ -124,10 +140,10 @@ export const updateUserProfile = async (profileData) => {
   }
 };
 
-// Función para obtener el perfil de un usuario específico
+// 📄 Obtener perfil por ID
 export const getUserProfileById = async (userId) => {
   try {
-    const response = await axios.get(`${API_URL}/users/profile/${userId}/`);
+    const response = await axios.get(`${API_URL}/users/profile/${userId}/`, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al obtener el perfil del usuario:', error);
@@ -135,21 +151,21 @@ export const getUserProfileById = async (userId) => {
   }
 };
 
-// Función para actualizar el perfil de un usuario específico
+// ✏️ Actualizar perfil por ID (admin)
 export const updateUserProfileById = async (userId, profileData) => {
-    try {
-      const response = await axios.put(`${API_URL}/users/profile/${userId}/`, profileData);
-      return response.data;
-    } catch (error) {
-      console.error('Error al actualizar el perfil del usuario:', error);
-      throw error;
-    }
-  };
+  try {
+    const response = await axios.put(`${API_URL}/users/profile/${userId}/`, profileData, authHeader());
+    return response.data;
+  } catch (error) {
+    console.error('Error al actualizar el perfil del usuario:', error);
+    throw error;
+  }
+};
 
-// Función para verificar el estado de autenticación del usuario (protegida)
+// 🔒 Verificar si el usuario está autenticado
 export const checkAuthStatus = async () => {
   try {
-    const response = await axios.get(`${API_URL}/users/protected/`);
+    const response = await axios.get(`${API_URL}/users/protected/`, authHeader());
     return response.data;
   } catch (error) {
     console.error('Error al verificar la autenticación:', error);
@@ -157,7 +173,7 @@ export const checkAuthStatus = async () => {
   }
 };
 
-// Función para refrescar el token (si es necesario)
+// 🔄 Refrescar token
 export const refreshToken = async () => {
   try {
     const response = await axios.post(`${API_URL}/users/refresh/`);
