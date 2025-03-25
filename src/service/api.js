@@ -122,7 +122,17 @@ export const getUserProfile = async () => {
 // ✏️ Actualizar tu perfil
 export const updateUserProfile = async (profileData) => {
   try {
-    const response = await axios.put(`${API_URL}/users/profile/`, profileData, authHeader());
+    // Añadimos el header correcto para FormData
+    const headers = {
+      ...authHeader().headers,
+      'Content-Type': 'multipart/form-data',
+    };
+
+    const response = await axios.put(
+      `${API_URL}/users/profile/`, 
+      profileData,
+      { headers }
+    );
     return response.data;
   } catch (error) {
     console.error('Error al actualizar el perfil del usuario:', error);

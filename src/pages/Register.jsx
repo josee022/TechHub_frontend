@@ -10,11 +10,9 @@ import {
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser, loginUser } from "../service/api";
-import useStore from "../store/useStore";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-  const setUser = useStore((state) => state.setUser);
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -41,10 +39,9 @@ const RegisterPage = () => {
 
       // 3️⃣ Guardar token y usuario
       localStorage.setItem("token", token);
-      setUser({ username }); // puedes reemplazar con más info si la tienes
 
       // 4️⃣ Redirigir
-      navigate("/products");
+      navigate("/login");
     } catch (err) {
       console.error("Error al registrar:", err);
       if (err.response?.data) {
