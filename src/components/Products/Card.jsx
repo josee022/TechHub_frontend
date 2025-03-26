@@ -1,36 +1,68 @@
-import React from "react";
-import { Button, Card, CardContent, Typography } from "@mui/material";
-import { Link } from "react-router-dom"; // Enlace para ir a la página de detalles del dispositivo
+import React, { useState } from "react";
+import { Card as MuiCard, CardContent, Typography, Chip, Box } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import ImageIcon from '@mui/icons-material/Image';
 
 const ProductCard = ({ device }) => {
+  const navigate = useNavigate();
+  const API_URL = 'http://localhost:8000';
+  const [imageError, setImageError] = useState(false);
+
   return (
-    <Card className="bg-white rounded-xl shadow-lg hover:scale-105 transition-transform">
+    <MuiCard 
+      className="h-full transition-transform duration-300 hover:scale-105 cursor-pointer bg-white/90 backdrop-blur-sm"
+      onClick={() => navigate(`/device/${device.id}`)}
+    >
+      <div className="w-full h-48 overflow-hidden bg-gray-100 flex items-center justify-center">
+        {device.imagen && !imageError ? (
+          <img
+            src={device.imagen.startsWith('http') ? device.imagen : `${API_URL}${device.imagen}`}
+            alt={device.nombre}
+            className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="text-gray-400 flex flex-col items-center">
+            <ImageIcon sx={{ fontSize: 48, marginBottom: 1 }} />
+            <span>Sin imagen</span>
+          </div>
+        )}
+      </div>
+      
       <CardContent>
-        <Typography variant="h6" className="text-xl font-semibold text-gray-800 mb-2">
+        <Typography variant="h6" className="font-bold text-gray-800 mb-2">
           {device.nombre}
         </Typography>
 
-        <Typography variant="body2" className="text-gray-600 mb-2">
-          <strong>Tipo:</strong> {device.tipo}
+        <Box className="flex gap-2 mb-3">
+          <Chip
+            label={device.estado ? "Activo" : "Inactivo"}
+            color={device.estado ? "success" : "error"}
+            size="small"
+          />
+          <Chip
+            label={device.tipo}
+            color="primary"
+            size="small"
+          />
+        </Box>
+
+        <Typography variant="body2" color="text.secondary" className="mb-2">
+          {device.descripcion || "Sin descripción"}
         </Typography>
 
-        <Typography variant="body2" className="text-gray-600 mb-4">
-          <strong>Estado:</strong> {device.estado ? "Activo" : "Inactivo"}
-        </Typography>
-
-        {/* Descripción del dispositivo */}
-        <Typography variant="body2" className="text-gray-700 mb-4">
-          {device.descripcion ? device.descripcion.substring(0, 50) + "..." : "No hay descripción disponible."}
-        </Typography>
-
-        {/* Botón para ver detalles */}
-        <Link to={`/device/${device.id}`}>
-          <Button variant="contained" color="primary" className="w-full">
-            Ver detalles
-          </Button>
-        </Link>
+        <Box className="mt-4 space-y-1">
+          <Typography variant="caption" className="text-gray-600 block">
+            <strong>Propietario:</strong> {device.user?.username || "No especificado"}
+          </Typography>
+          <Typography variant="caption" className="text-gray-600 block">
+            <strong>Creado:</strong> {format(new Date(device.fecha_creacion), "PPp", { locale: es })}
+          </Typography>
+        </Box>
       </CardContent>
-    </Card>
+    </MuiCard>
   );
 };
 

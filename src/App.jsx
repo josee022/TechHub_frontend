@@ -6,6 +6,9 @@ import ProductsPage from "./pages/Products";
 import PrivateRoute from "./components/routes/Privateroute";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
+import DeviceDetails from "./pages/DeviceDetails";
+import CreateDevice from "./pages/CreateDevice";
+import EditDevice from "./pages/EditDevice";
 
 function App() {
 
@@ -20,6 +23,30 @@ function App() {
         element={
           <PrivateRoute>
             <ProductsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/create-device"
+        element={
+          <PrivateRoute>
+            <CreateDevice />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/device/:id"
+        element={
+          <PrivateRoute>
+            <DeviceDetails />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/edit-device/:id"
+        element={
+          <PrivateRoute>
+            <EditDevice />
           </PrivateRoute>
         }
       />
