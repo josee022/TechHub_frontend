@@ -15,10 +15,20 @@ const authHeader = (isFormData = false) => {
   return { headers };
 };
 
-// 📡 Obtener todos los dispositivos (requiere login)
-export const getAllDevices = async () => {
+// 📱 Obtener todos los dispositivos (con paginación y filtros)
+export const getAllDevices = async (page = 1, filters = {}) => {
   try {
-    const response = await axios.get(`${API_URL}/devices/`, authHeader());
+    console.log('Fetching devices with:', { page, filters }); // Debug log
+    // Construir los parámetros de consulta
+    const params = new URLSearchParams({
+      page: page,
+      ...filters
+    });
+
+    const url = `${API_URL}/devices/?${params.toString()}`;
+    console.log('Request URL:', url); // Debug log
+    const response = await axios.get(url, authHeader());
+    console.log('Response:', response.data); // Debug log
     return response.data;
   } catch (error) {
     console.error('Error al obtener los dispositivos:', error);
