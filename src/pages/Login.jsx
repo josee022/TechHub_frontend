@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Button, TextField, Typography, Container, Paper, Box } from "@mui/material";
-import { motion } from "framer-motion";
+import { Button, TextField, Typography, Container, Paper, Box, Alert } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../service/api";
 
@@ -17,28 +16,46 @@ const LoginPage = () => {
 
     try {
       const res = await loginUser({ username, password });
-      const token = res.access;
+      console.log("Login response:", res);
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("username", username);
+      // Guardar token
+      localStorage.setItem("token", res.access);
+      
+      // Si tenemos datos del usuario, guardarlos
+      if (res.user) {
+        localStorage.setItem("user", JSON.stringify(res.user));
+      } else {
+        // Si no tenemos datos del usuario, hacer una petición al endpoint protegido
+        try {
+          const userResponse = await fetch('http://localhost:8000/api/users/protected/', {
+            headers: {
+              'Authorization': `Bearer ${res.access}`
+            }
+          });
+          const userData = await userResponse.json();
+          if (userData.user) {
+            localStorage.setItem("user", JSON.stringify(userData.user));
+          }
+        } catch (userError) {
+          console.error("Error al obtener datos del usuario:", userError);
+        }
+      }
+
+      // Disparar evento de storage para actualizar el header
+      window.dispatchEvent(new Event('storage'));
 
       navigate("/products");
     } catch (err) {
       console.error("Error al iniciar sesión:", err);
-      setError("Credenciales incorrectas.");
+      setError(err.response?.data?.detail || "Error al iniciar sesión. Por favor, inténtalo de nuevo.");
     }
   };
-
 
   return (
     <div className="bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 min-h-screen flex justify-center items-center">
       <Container maxWidth="lg">
         <Paper className="bg-white p-8 rounded-xl shadow-xl max-w-lg mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="animate-fadeIn">
             <Typography variant="h4" className="text-center font-bold text-gray-800 mb-6">
               Iniciar sesión
             </Typography>
@@ -67,7 +84,7 @@ const LoginPage = () => {
               />
 
               {error && (
-                <Typography className="text-red-500 text-center">{error}</Typography>
+                <Alert severity="error">{error}</Alert>
               )}
 
               <Button
@@ -89,7 +106,7 @@ const LoginPage = () => {
                 </Typography>
               </div>
             </form>
-          </motion.div>
+          </div>
 
           <Box className="mt-12 text-center text-gray-600">
             <Typography variant="body2" className="font-medium mb-4">
