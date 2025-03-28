@@ -214,3 +214,40 @@ export const refreshToken = async () => {
     throw error;
   }
 };
+
+// ⭐ Obtener reviews de un dispositivo
+export const getDeviceReviews = async (deviceId) => {
+  try {
+    const response = await axios.get(`${API_URL}/${deviceId}/reviews/`, authHeader());
+    return response.data.results;
+  } catch (error) {
+    console.error('Error al obtener las reviews del dispositivo:', error);
+    throw error;
+  }
+};
+
+// 🔢 Obtener media de puntuación
+export const getAverageRating = async (deviceId) => {
+  try {
+    const response = await axios.get(`${API_URL}/reviews/average-rating/${deviceId}/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener la puntuación promedio:', error);
+    throw error;
+  }
+};
+
+// 📝 Crear nueva review
+export const createReview = async (deviceId, reviewData) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/${deviceId}/reviews/`,
+      reviewData,
+      authHeader()
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error al crear la reseña:', error.response?.data || error);
+    throw error;
+  }
+};
