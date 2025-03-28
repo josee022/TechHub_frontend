@@ -1,14 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getDeviceDetails, getDeviceReviews, getAverageRating, createReview } from "../service/api";
-import { Container, Paper, Typography, Grid, Chip, Box, Button } from "@mui/material";
+import {
+  getDeviceDetails,
+  getDeviceReviews,
+  getAverageRating,
+  createReview,
+  deleteReview,
+  updateReview,
+} from "../service/api";
+import {
+  Container,
+  Paper,
+  Typography,
+  Grid,
+  Chip,
+  Box,
+  Button,
+} from "@mui/material";
 import Header from "../components/Home/Header";
 import Footer from "../components/Home/Footer";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import EditIcon from '@mui/icons-material/Edit';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ImageIcon from '@mui/icons-material/Image';
+import EditIcon from "@mui/icons-material/Edit";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ImageIcon from "@mui/icons-material/Image";
 
 const DeviceDetails = () => {
   const { id } = useParams();
@@ -21,9 +36,11 @@ const DeviceDetails = () => {
   const [average, setAverage] = useState(null);
   const [userReviewExists, setUserReviewExists] = useState(false);
   const [rating, setRating] = useState(5);
-const [comment, setComment] = useState("");
-const [submitting, setSubmitting] = useState(false);
-  const API_URL = 'http://localhost:8000';
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState(null);
+  const [editData, setEditData] = useState({ rating: 5, comment: "" });
+  const API_URL = "http://localhost:8000";
 
   useEffect(() => {
     const fetchDeviceDetails = async () => {
@@ -31,51 +48,50 @@ const [submitting, setSubmitting] = useState(false);
         const data = await getDeviceDetails(id);
         setDevice(data);
         setImageError(false);
-  
+
         const userData = JSON.parse(localStorage.getItem("user"));
         if (userData && data.user) {
           const isAdmin = userData.role === "admin";
           const isOwner = parseInt(userData.id) === parseInt(data.user.id);
           setIsOwner(isAdmin || isOwner);
         }
-  
+
         // Obtener reseñas y puntuación
         const [reviewData, averageData] = await Promise.all([
           getDeviceReviews(id),
           getAverageRating(id),
         ]);
-  
+
         setReviews(reviewData);
         setAverage(averageData);
-        
+
         if (userData) {
           const userHasReview = reviewData.some(
             (review) => review.user.id === userData.id
           );
           setUserReviewExists(userHasReview);
         }
-  
       } catch (error) {
         console.error("Error al obtener los detalles del dispositivo:", error);
       } finally {
         setLoading(false);
       }
     };
-  
+
     fetchDeviceDetails();
-  }, [id]);  
+  }, [id]);
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-  
+
     try {
       await createReview(id, { rating, comment });
-  
+
       setComment("");
       setRating(5);
       setUserReviewExists(true);
-  
+
       // Recargar reseñas y media
       const [newReviews, newAverage] = await Promise.all([
         getDeviceReviews(id),
@@ -83,14 +99,60 @@ const [submitting, setSubmitting] = useState(false);
       ]);
       setReviews(newReviews);
       setAverage(newAverage);
-  
     } catch (error) {
       alert("Ocurrió un error al enviar tu reseña.");
       console.error(error);
     } finally {
       setSubmitting(false);
     }
-  };  
+  };
+
+  const handleDeleteClick = async (reviewId) => {
+    const confirm = window.confirm(
+      "¿Estás seguro de que quieres eliminar tu reseña?"
+    );
+    if (!confirm) return;
+
+    try {
+      await deleteReview(id, reviewId); // id es el deviceId desde useParams()
+
+      // Refrescar reseñas y media
+      const [newReviews, newAverage] = await Promise.all([
+        getDeviceReviews(id),
+        getAverageRating(id),
+      ]);
+      setReviews(newReviews);
+      setAverage(newAverage);
+      setUserReviewExists(false); // mostrar formulario otra vez si era su única review
+    } catch (error) {
+      alert("Error al eliminar la reseña.");
+      console.error(error);
+    }
+  };
+
+  const handleEditClick = (review) => {
+    setEditingReviewId(review.id);
+    setEditData({ rating: review.rating, comment: review.comment });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await updateReview(id, editingReviewId, editData);
+
+      // Actualizar reseñas y media
+      const [newReviews, newAverage] = await Promise.all([
+        getDeviceReviews(id),
+        getAverageRating(id),
+      ]);
+      setReviews(newReviews);
+      setAverage(newAverage);
+      setEditingReviewId(null); // Cerrar formulario
+    } catch (error) {
+      alert("Error al actualizar la reseña.");
+      console.error(error);
+    }
+  };
 
   if (loading) {
     return (
@@ -152,7 +214,11 @@ const [submitting, setSubmitting] = useState(false);
               <div className="w-full h-96 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                 {device.imagen && !imageError ? (
                   <img
-                    src={device.imagen.startsWith('http') ? device.imagen : `${API_URL}${device.imagen}`}
+                    src={
+                      device.imagen.startsWith("http")
+                        ? device.imagen
+                        : `${API_URL}${device.imagen}`
+                    }
                     alt={device.nombre}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
@@ -188,17 +254,22 @@ const [submitting, setSubmitting] = useState(false);
 
               <Box className="space-y-2 mb-4">
                 <Typography variant="body2">
-                  <strong>Ubicación:</strong> {device.ubicacion || "No especificada"}
+                  <strong>Ubicación:</strong>{" "}
+                  {device.ubicacion || "No especificada"}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Modelo de Firmware:</strong> {device.modelo_firmware || "No especificado"}
+                  <strong>Modelo de Firmware:</strong>{" "}
+                  {device.modelo_firmware || "No especificado"}
                 </Typography>
                 <Typography variant="body2">
-                  <strong>Propietario:</strong> {device.user?.username || "No especificado"}
+                  <strong>Propietario:</strong>{" "}
+                  {device.user?.username || "No especificado"}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Fecha de Creación:</strong>{" "}
-                  {format(new Date(device.fecha_creacion), "PPp", { locale: es })}
+                  {format(new Date(device.fecha_creacion), "PPp", {
+                    locale: es,
+                  })}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Última Actualización:</strong>{" "}
@@ -208,83 +279,177 @@ const [submitting, setSubmitting] = useState(false);
             </Grid>
           </Grid>
           <Box className="mt-10">
-          <Typography variant="h5" className="font-bold mb-4">
-            Reseñas
-          </Typography>
-
-          {average && (
-            <Typography variant="body1" className="mb-2">
-              ⭐ <strong>{average.average_rating || 0}</strong>/5 basado en {average.review_count} reseñas
+            <Typography variant="h5" className="font-bold mb-4">
+              Reseñas
             </Typography>
-          )}
 
-          {reviews.length === 0 ? (
-            <Typography variant="body2">Aún no hay reseñas para este dispositivo.</Typography>
-          ) : (
-            reviews.map((review) => (
-              <Paper key={review.id} className="p-4 mb-4">
-                <Box className="flex items-center gap-2 mb-1">
-                  {review.user.avatar ? (
-                    <img
-                      src={`http://localhost:8000${review.user.avatar}`}
-                      alt={review.user.username}
-                      className="w-8 h-8 rounded-full"
-                    />
+            {average && (
+              <Typography variant="body1" className="mb-2">
+                ⭐ <strong>{average.average_rating || 0}</strong>/5 basado en{" "}
+                {average.review_count} reseñas
+              </Typography>
+            )}
+
+            {reviews.length === 0 ? (
+              <Typography variant="body2">
+                Aún no hay reseñas para este dispositivo.
+              </Typography>
+            ) : (
+              reviews.map((review) => (
+                <Paper key={review.id} className="p-4 mb-4">
+                  <Box className="flex items-center gap-2 mb-1">
+                    {review.user.avatar ? (
+                      <img
+                        src={`http://localhost:8000${review.user.avatar}`}
+                        alt={review.user.username}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold">
+                        {review.user.username[0]}
+                      </div>
+                    )}
+                    <Typography variant="subtitle2">
+                      {review.user.username}
+                    </Typography>
+                  </Box>
+                  {editingReviewId === review.id ? (
+                    <Box
+                      component="form"
+                      onSubmit={handleEditSubmit}
+                      className="mt-2 space-y-2"
+                    >
+                      <select
+                        value={editData.rating}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            rating: Number(e.target.value),
+                          })
+                        }
+                        className="w-full border rounded px-3 py-2"
+                      >
+                        {[5, 4, 3, 2, 1].map((value) => (
+                          <option key={value} value={value}>
+                            {value} ⭐
+                          </option>
+                        ))}
+                      </select>
+                      <textarea
+                        value={editData.comment}
+                        onChange={(e) =>
+                          setEditData({ ...editData, comment: e.target.value })
+                        }
+                        rows={3}
+                        className="w-full border rounded px-3 py-2"
+                        minLength={10}
+                        required
+                      />
+                      <Box className="flex gap-2">
+                        <Button
+                          type="submit"
+                          size="small"
+                          variant="contained"
+                          color="primary"
+                        >
+                          Guardar
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="inherit"
+                          onClick={() => setEditingReviewId(null)}
+                        >
+                          Cancelar
+                        </Button>
+                      </Box>
+                    </Box>
                   ) : (
-                    <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold">
-                      {review.user.username[0]}
-                    </div>
+                    <>
+                      <Typography variant="body2" className="mb-1">
+                        ⭐ {review.rating} / 5
+                      </Typography>
+                      <Typography variant="body2">{review.comment}</Typography>
+                    </>
                   )}
-                  <Typography variant="subtitle2">{review.user.username}</Typography>
-                </Box>
-                <Typography variant="body2" className="mb-1">
-                  ⭐ {review.rating} / 5
-                </Typography>
-                <Typography variant="body2">{review.comment}</Typography>
-                <Typography variant="caption" color="textSecondary">
-                  {new Date(review.created_at).toLocaleString()}
-                </Typography>
-              </Paper>
-            ))
+                  {review.user.id ===
+                    JSON.parse(localStorage.getItem("user"))?.id && (
+                    <Box className="flex gap-2 mt-2">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="success"
+                        onClick={() => handleEditClick(review)}
+                      >
+                        ✏️
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        onClick={() => handleDeleteClick(review.id)}
+                      >
+                        🗑️
+                      </Button>
+                    </Box>
+                  )}
+                  <Typography variant="caption" color="textSecondary">
+                    {new Date(review.created_at).toLocaleString()}
+                  </Typography>
+                </Paper>
+              ))
+            )}
+          </Box>
+          {!userReviewExists && (
+            <Box
+              component="form"
+              onSubmit={handleReviewSubmit}
+              className="mt-6 p-4 border rounded-lg bg-white/80"
+            >
+              <Typography variant="h6" className="mb-2">
+                Deja tu reseña
+              </Typography>
+
+              <Box className="mb-3">
+                <label className="block mb-1 font-medium">
+                  Puntuación (1-5):
+                </label>
+                <select
+                  value={rating}
+                  onChange={(e) => setRating(Number(e.target.value))}
+                  className="w-full border rounded px-3 py-2"
+                >
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option key={value} value={value}>
+                      {value} ⭐
+                    </option>
+                  ))}
+                </select>
+              </Box>
+
+              <Box className="mb-3">
+                <label className="block mb-1 font-medium">Comentario:</label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={4}
+                  className="w-full border rounded px-3 py-2"
+                  placeholder="Escribe tu opinión aquí..."
+                  required
+                  minLength={10}
+                />
+              </Box>
+
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={submitting}
+              >
+                {submitting ? "Enviando..." : "Enviar reseña"}
+              </Button>
+            </Box>
           )}
-        </Box>
-        {!userReviewExists && (
-  <Box component="form" onSubmit={handleReviewSubmit} className="mt-6 p-4 border rounded-lg bg-white/80">
-    <Typography variant="h6" className="mb-2">Deja tu reseña</Typography>
-
-    <Box className="mb-3">
-      <label className="block mb-1 font-medium">Puntuación (1-5):</label>
-      <select
-        value={rating}
-        onChange={(e) => setRating(Number(e.target.value))}
-        className="w-full border rounded px-3 py-2"
-      >
-        {[5, 4, 3, 2, 1].map((value) => (
-          <option key={value} value={value}>
-            {value} ⭐
-          </option>
-        ))}
-      </select>
-    </Box>
-
-    <Box className="mb-3">
-      <label className="block mb-1 font-medium">Comentario:</label>
-      <textarea
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        rows={4}
-        className="w-full border rounded px-3 py-2"
-        placeholder="Escribe tu opinión aquí..."
-        required
-        minLength={10}
-      />
-    </Box>
-
-    <Button type="submit" variant="contained" color="primary" disabled={submitting}>
-      {submitting ? "Enviando..." : "Enviar reseña"}
-    </Button>
-  </Box>
-)}
         </Paper>
       </Container>
       <Footer />

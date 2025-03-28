@@ -251,3 +251,30 @@ export const createReview = async (deviceId, reviewData) => {
     throw error;
   }
 };
+
+export const deleteReview = async (deviceId, reviewId) => {
+  try {
+    const response = await axios.delete(
+      `${API_URL}/${deviceId}/reviews/${reviewId}/`,
+      authHeader()
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error al eliminar la reseña:', error);
+    throw error;
+  }
+};
+
+export const updateReview = async (deviceId, reviewId, data) => {
+  try {
+    const response = await axios.patch(
+      `${API_URL}/${deviceId}/reviews/${reviewId}/`,
+      data,
+      authHeader()
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error al actualizar la reseña:', error.response?.data || error);
+    throw error;
+  }
+};
