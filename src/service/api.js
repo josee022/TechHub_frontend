@@ -15,10 +15,20 @@ const authHeader = (isFormData = false) => {
   return { headers };
 };
 
-// 📡 Obtener todos los dispositivos (requiere login)
-export const getAllDevices = async () => {
+// 📱 Obtener todos los dispositivos (con paginación y filtros)
+export const getAllDevices = async (page = 1, filters = {}) => {
   try {
-    const response = await axios.get(`${API_URL}/devices/`, authHeader());
+    console.log('Fetching devices with:', { page, filters }); // Debug log
+    // Construir los parámetros de consulta
+    const params = new URLSearchParams({
+      page: page,
+      ...filters
+    });
+
+    const url = `${API_URL}/devices/?${params.toString()}`;
+    console.log('Request URL:', url); // Debug log
+    const response = await axios.get(url, authHeader());
+    console.log('Response:', response.data); // Debug log
     return response.data;
   } catch (error) {
     console.error('Error al obtener los dispositivos:', error);
@@ -201,6 +211,43 @@ export const refreshToken = async () => {
     return response.data;
   } catch (error) {
     console.error('Error al refrescar el token:', error);
+    throw error;
+  }
+};
+
+// ⭐ Obtener reviews de un dispositivo
+export const getDeviceReviews = async (deviceId) => {
+  try {
+    const response = await axios.get(`${API_URL}/${deviceId}/reviews/`, authHeader());
+    return response.data.results;
+  } catch (error) {
+    console.error('Error al obtener las reviews del dispositivo:', error);
+    throw error;
+  }
+};
+
+// 🔢 Obtener media de puntuación
+export const getAverageRating = async (deviceId) => {
+  try {
+    const response = await axios.get(`${API_URL}/reviews/average-rating/${deviceId}/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener la puntuación promedio:', error);
+    throw error;
+  }
+};
+
+// 📝 Crear nueva review
+export const createReview = async (deviceId, reviewData) => {
+  try {
+    const response = await axios.post(
+      `${API_URL}/${deviceId}/reviews/`,
+      reviewData,
+      authHeader()
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error al crear la reseña:', error.response?.data || error);
     throw error;
   }
 };
