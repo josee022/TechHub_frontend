@@ -5,9 +5,14 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // 🔐 Utilidad para headers con token
 const authHeader = (isFormData = false) => {
-  const headers = {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  };
+  const token = localStorage.getItem("token");
+  console.log("Token usado en authHeader:", token); // Debug
+  
+  const headers = {};
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
   if (!isFormData) {
     headers['Content-Type'] = 'application/json';
@@ -124,6 +129,18 @@ export const loginUser = async (loginData) => {
     if (!response.data || !response.data.access) {
       throw new Error('Respuesta de login inválida');
     }
+    
+    // Guardar token y datos de usuario
+    localStorage.setItem('token', response.data.access);
+    
+    // Guardar información del usuario
+    if (response.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+    
+    console.log('Token guardado:', localStorage.getItem('token')); // Debug
+    console.log('Usuario guardado:', localStorage.getItem('user')); // Debug
+    
     return response.data;
   } catch (error) {
     console.error('Error al iniciar sesión:', error.response || error);
