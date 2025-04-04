@@ -278,3 +278,17 @@ export const updateReview = async (deviceId, reviewId, data) => {
     throw error;
   }
 };
+
+// Dashboard
+export const getDashboardStats = async () => {
+  try {
+    const response = await axios.get(
+      `${API_URL}/dashboard-stats/`,
+      authHeader()
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error en getDashboardStats:', error);
+    throw error;
+  }
+};

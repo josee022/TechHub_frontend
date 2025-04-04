@@ -79,6 +79,9 @@ const Header = () => {
             <Button color="inherit" component={Link} to="/products">
               Dispositivos
             </Button>
+            <Button color="inherit" component={Link} to="/dashboard">
+              Informes
+            </Button>
             <IconButton
               onClick={handleMenu}
               color="inherit"

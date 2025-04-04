@@ -9,6 +9,7 @@ import EditProfile from "./pages/EditProfile";
 import DeviceDetails from "./pages/DeviceDetails";
 import CreateDevice from "./pages/CreateDevice";
 import EditDevice from "./pages/EditDevice";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
 
@@ -23,6 +24,14 @@ function App() {
         element={
           <PrivateRoute>
             <ProductsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <Dashboard />
           </PrivateRoute>
         }
       />
