@@ -40,7 +40,7 @@ export const getAllDevices = async (page = 1, filters = {}) => {
 export const createDevice = async (deviceData) => {
   try {
     const response = await axios.post(
-      `${API_URL}/devices/`, 
+      `${API_URL}/devices/`,
       deviceData,
       authHeader(true) // Indicamos que es FormData
     );
@@ -66,7 +66,7 @@ export const getDeviceDetails = async (deviceId) => {
 export const updateDevice = async (deviceId, deviceData) => {
   try {
     const response = await axios.put(
-      `${API_URL}/devices/${deviceId}/`, 
+      `${API_URL}/devices/${deviceId}/`,
       deviceData,
       authHeader(true) // Indicamos que es FormData
     );
@@ -81,7 +81,7 @@ export const updateDevice = async (deviceId, deviceData) => {
 export const patchDevice = async (deviceId, deviceData) => {
   try {
     const response = await axios.patch(
-      `${API_URL}/devices/${deviceId}/`, 
+      `${API_URL}/devices/${deviceId}/`,
       deviceData,
       authHeader(true) // Indicamos que es FormData
     );
@@ -156,7 +156,7 @@ export const getUserProfile = async () => {
 export const updateUserProfile = async (profileData) => {
   try {
     const response = await axios.put(
-      `${API_URL}/users/profile/`, 
+      `${API_URL}/users/profile/`,
       profileData,
       authHeader(true) // Indicamos que es FormData
     );
@@ -182,7 +182,7 @@ export const getUserProfileById = async (userId) => {
 export const updateUserProfileById = async (userId, profileData) => {
   try {
     const response = await axios.put(
-      `${API_URL}/users/profile/${userId}/`, 
+      `${API_URL}/users/profile/${userId}/`,
       profileData,
       authHeader(true) // Indicamos que es FormData
     );
