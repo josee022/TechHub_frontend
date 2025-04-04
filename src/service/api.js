@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Usar la URL de la API desde variables de entorno o valor por defecto
-const API_URL = import.meta.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // 🔐 Utilidad para headers con token
 const authHeader = (isFormData = false) => {
