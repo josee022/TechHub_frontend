@@ -5,14 +5,9 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // 🔐 Utilidad para headers con token
 const authHeader = (isFormData = false) => {
-  const token = localStorage.getItem("token");
-  console.log("Token usado en authHeader:", token); // Debug
-  
-  const headers = {};
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  const headers = {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  };
 
   if (!isFormData) {
     headers['Content-Type'] = 'application/json';
@@ -24,7 +19,6 @@ const authHeader = (isFormData = false) => {
 // 📱 Obtener todos los dispositivos (con paginación y filtros)
 export const getAllDevices = async (page = 1, filters = {}) => {
   try {
-    console.log('Fetching devices with:', { page, filters }); // Debug log
     // Construir los parámetros de consulta
     const params = new URLSearchParams({
       page: page,
@@ -32,9 +26,7 @@ export const getAllDevices = async (page = 1, filters = {}) => {
     });
 
     const url = `${API_URL}/devices/?${params.toString()}`;
-    console.log('Request URL:', url); // Debug log
     const response = await axios.get(url, authHeader());
-    console.log('Response:', response.data); // Debug log
     return response.data;
   } catch (error) {
     console.error('Error al obtener los dispositivos:', error);
@@ -124,8 +116,6 @@ export const registerUser = async (userData) => {
 export const loginUser = async (loginData) => {
   try {
     const response = await axios.post(`${API_URL}/users/login/`, loginData);
-    console.log('Login API response (raw):', response);  // Debug completo
-    console.log('Login API response (data):', response.data);  // Debug datos
     if (!response.data || !response.data.access) {
       throw new Error('Respuesta de login inválida');
     }
@@ -137,9 +127,6 @@ export const loginUser = async (loginData) => {
     if (response.data.user) {
       localStorage.setItem('user', JSON.stringify(response.data.user));
     }
-    
-    console.log('Token guardado:', localStorage.getItem('token')); // Debug
-    console.log('Usuario guardado:', localStorage.getItem('user')); // Debug
     
     return response.data;
   } catch (error) {
