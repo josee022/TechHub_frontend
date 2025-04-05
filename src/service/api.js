@@ -3,10 +3,34 @@ import axios from 'axios';
 // Usar la URL de la API desde variables de entorno o valor por defecto
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
+// Función para obtener la URL completa de una imagen
+export const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${API_URL.replace('/api', '')}${imagePath}`;
+};
+
+// Función para obtener el usuario actual desde localStorage
+export const getCurrentUser = () => {
+  try {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  } catch (error) {
+    console.error('Error al obtener el usuario actual:', error);
+    return null;
+  }
+};
+
 // 🔐 Utilidad para headers con token
 const authHeader = (isFormData = false) => {
+  const token = localStorage.getItem("token");
+  
+  if (!token) {
+    return isFormData ? { headers: {} } : { headers: { 'Content-Type': 'application/json' } };
+  }
+  
   const headers = {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
+    Authorization: `Bearer ${token}`,
   };
 
   if (!isFormData) {
@@ -150,6 +174,12 @@ export const logoutUser = async () => {
 export const getUserProfile = async () => {
   try {
     const response = await axios.get(`${API_URL}/users/profile/`, authHeader());
+    
+    // Actualizar la información del usuario en localStorage
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
+    
     return response.data;
   } catch (error) {
     console.error('Error al obtener el perfil del usuario:', error);
@@ -165,6 +195,12 @@ export const updateUserProfile = async (profileData) => {
       profileData,
       authHeader(true) // Indicamos que es FormData
     );
+    
+    // Actualizar la información del usuario en localStorage
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
+    
     return response.data;
   } catch (error) {
     console.error('Error al actualizar el perfil del usuario:', error);
@@ -201,18 +237,31 @@ export const updateUserProfileById = async (userId, profileData) => {
 // 🔒 Verificar si el usuario está autenticado
 export const checkAuthStatus = async () => {
   try {
-    const response = await axios.get(`${API_URL}/users/check-auth/`, authHeader());
-    return response.data;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return { isAuthenticated: false };
+    }
+    
+    // Intentar obtener el perfil del usuario para verificar si el token es válido
+    await getUserProfile();
+    return { isAuthenticated: true };
   } catch (error) {
-    console.error('Error al verificar autenticación:', error);
-    throw error;
+    console.error('Error al verificar estado de autenticación:', error);
+    // Si hay un error (401 probablemente), limpiar el token
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    return { isAuthenticated: false };
   }
 };
 
 // 🔄 Refrescar token
 export const refreshToken = async () => {
   try {
-    const response = await axios.post(`${API_URL}/users/token/refresh/`);
+    const refresh = localStorage.getItem('refresh');
+    if (!refresh) throw new Error('No hay token de refresco');
+    
+    const response = await axios.post(`${API_URL}/users/token/refresh/`, { refresh });
+    localStorage.setItem('token', response.data.access);
     return response.data;
   } catch (error) {
     console.error('Error al refrescar el token:', error);
@@ -223,10 +272,10 @@ export const refreshToken = async () => {
 // ⭐ Obtener reviews de un dispositivo
 export const getDeviceReviews = async (deviceId) => {
   try {
-    const response = await axios.get(`${API_URL}/${deviceId}/reviews/`, authHeader());
-    return response.data.results;
+    const response = await axios.get(`${API_URL}/reviews/device/${deviceId}/`, authHeader());
+    return response.data;
   } catch (error) {
-    console.error('Error al obtener las reviews del dispositivo:', error);
+    console.error('Error al obtener las reviews:', error);
     throw error;
   }
 };
@@ -234,10 +283,10 @@ export const getDeviceReviews = async (deviceId) => {
 // 🔢 Obtener media de puntuación
 export const getAverageRating = async (deviceId) => {
   try {
-    const response = await axios.get(`${API_URL}/reviews/average-rating/${deviceId}/`);
+    const response = await axios.get(`${API_URL}/reviews/device/${deviceId}/average/`, authHeader());
     return response.data;
   } catch (error) {
-    console.error('Error al obtener la puntuación promedio:', error);
+    console.error('Error al obtener la media de puntuación:', error);
     throw error;
   }
 };
@@ -245,41 +294,65 @@ export const getAverageRating = async (deviceId) => {
 // 📝 Crear nueva review
 export const createReview = async (deviceId, reviewData) => {
   try {
+    const formData = new FormData();
+    
+    // Añadir todos los campos
+    Object.keys(reviewData).forEach(key => {
+      if (key === 'imagen' && reviewData[key]) {
+        formData.append(key, reviewData[key]);
+      } else if (key !== 'imagen') {
+        formData.append(key, reviewData[key]);
+      }
+    });
+    
     const response = await axios.post(
-      `${API_URL}/${deviceId}/reviews/`,
-      reviewData,
-      authHeader()
+      `${API_URL}/reviews/device/${deviceId}/`,
+      formData,
+      authHeader(true)
     );
     return response.data;
   } catch (error) {
-    console.error('Error al crear la reseña:', error.response?.data || error);
+    console.error('Error al crear la review:', error);
     throw error;
   }
 };
 
+// ❌ Eliminar review
 export const deleteReview = async (deviceId, reviewId) => {
   try {
     const response = await axios.delete(
-      `${API_URL}/${deviceId}/reviews/${reviewId}/`,
+      `${API_URL}/reviews/device/${deviceId}/${reviewId}/`,
       authHeader()
     );
     return response.data;
   } catch (error) {
-    console.error('Error al eliminar la reseña:', error);
+    console.error('Error al eliminar la review:', error);
     throw error;
   }
 };
 
+// ✏️ Actualizar review
 export const updateReview = async (deviceId, reviewId, data) => {
   try {
-    const response = await axios.patch(
-      `${API_URL}/${deviceId}/reviews/${reviewId}/`,
-      data,
-      authHeader()
+    const formData = new FormData();
+    
+    // Añadir todos los campos
+    Object.keys(data).forEach(key => {
+      if (key === 'imagen' && data[key] instanceof File) {
+        formData.append(key, data[key]);
+      } else if (key !== 'imagen') {
+        formData.append(key, data[key]);
+      }
+    });
+    
+    const response = await axios.put(
+      `${API_URL}/reviews/device/${deviceId}/${reviewId}/`,
+      formData,
+      authHeader(true)
     );
     return response.data;
   } catch (error) {
-    console.error('Error al actualizar la reseña:', error.response?.data || error);
+    console.error('Error al actualizar la review:', error);
     throw error;
   }
 };
@@ -287,13 +360,10 @@ export const updateReview = async (deviceId, reviewId, data) => {
 // Dashboard
 export const getDashboardStats = async () => {
   try {
-    const response = await axios.get(
-      `${API_URL}/dashboard-stats/`,
-      authHeader()
-    );
+    const response = await axios.get(`${API_URL}/devices/dashboard/`, authHeader());
     return response.data;
   } catch (error) {
-    console.error('Error en getDashboardStats:', error);
+    console.error('Error al obtener estadísticas del dashboard:', error);
     throw error;
   }
 };

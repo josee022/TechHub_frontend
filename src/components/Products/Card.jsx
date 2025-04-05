@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ImageIcon from '@mui/icons-material/Image';
+import { getImageUrl } from "../../service/api";
 
 const ProductCard = ({ device }) => {
   const navigate = useNavigate();
-  const API_URL = 'http://localhost:8000';
   const [imageError, setImageError] = useState(false);
 
   return (
@@ -18,7 +18,7 @@ const ProductCard = ({ device }) => {
       <div className="w-full h-48 overflow-hidden bg-gray-100 flex items-center justify-center">
         {device.imagen && !imageError ? (
           <img
-            src={device.imagen.startsWith('http') ? device.imagen : `${API_URL}${device.imagen}`}
+            src={getImageUrl(device.imagen)}
             alt={device.nombre}
             className="w-full h-full object-cover"
             onError={() => setImageError(true)}

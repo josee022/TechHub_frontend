@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getUserProfile, updateUserProfile } from "../service/api";
+import { getUserProfile, updateUserProfile, getImageUrl } from "../service/api";
 import { Typography, Container, Paper, TextField, Button, Box, Grid, Stack, Avatar } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Header from '../components/Home/Header';
@@ -122,10 +122,10 @@ const EditProfile = () => {
               <Grid item xs={12} md={4}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Avatar
-                    src={formData.avatar ? (formData.avatar instanceof File 
+                    src={formData.avatar instanceof File 
                       ? URL.createObjectURL(formData.avatar)
-                      : `http://localhost:8000${formData.avatar}`
-                    ) : undefined}
+                      : getImageUrl(formData.avatar)
+                    }
                     sx={{
                       width: 150,
                       height: 150,

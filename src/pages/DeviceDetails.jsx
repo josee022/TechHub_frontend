@@ -7,6 +7,8 @@ import {
   createReview,
   deleteReview,
   updateReview,
+  getCurrentUser,
+  getImageUrl
 } from "../service/api";
 import {
   Container,
@@ -40,7 +42,6 @@ const DeviceDetails = () => {
   const [submitting, setSubmitting] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [editData, setEditData] = useState({ rating: 5, comment: "" });
-  const API_URL = "http://localhost:8000";
 
   useEffect(() => {
     const fetchDeviceDetails = async () => {
@@ -49,36 +50,51 @@ const DeviceDetails = () => {
         setDevice(data);
         setImageError(false);
 
-        const userData = JSON.parse(localStorage.getItem("user"));
-        if (userData && data.user) {
-          const isAdmin = userData.role === "admin";
-          const isOwner = parseInt(userData.id) === parseInt(data.user.id);
-          setIsOwner(isAdmin || isOwner);
+        // Verificar si el usuario actual es el propietario del dispositivo
+        const currentUser = getCurrentUser();
+        if (currentUser && data.user && currentUser.id === data.user.id) {
+          setIsOwner(true);
+        } else {
+          setIsOwner(false);
         }
 
-        // Obtener reseñas y puntuación
-        const [reviewData, averageData] = await Promise.all([
-          getDeviceReviews(id),
-          getAverageRating(id),
-        ]);
-
-        setReviews(reviewData);
-        setAverage(averageData);
-
-        if (userData) {
-          const userHasReview = reviewData.some(
-            (review) => review.user.id === userData.id
-          );
-          setUserReviewExists(userHasReview);
-        }
+        setLoading(false);
       } catch (error) {
-        console.error("Error al obtener los detalles del dispositivo:", error);
-      } finally {
+        console.error("Error al cargar detalles del dispositivo:", error);
         setLoading(false);
       }
     };
 
+    const fetchReviews = async () => {
+      try {
+        const reviewsData = await getDeviceReviews(id);
+        setReviews(reviewsData);
+        
+        // Verificar si el usuario actual ya tiene una reseña
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+          const userReview = reviewsData.find(
+            (review) => review.user && review.user.id === currentUser.id
+          );
+          setUserReviewExists(!!userReview);
+        }
+      } catch (error) {
+        console.error("Error al cargar reseñas:", error);
+      }
+    };
+
+    const fetchAverageRating = async () => {
+      try {
+        const avgData = await getAverageRating(id);
+        setAverage(avgData.average_rating);
+      } catch (error) {
+        console.error("Error al cargar puntuación media:", error);
+      }
+    };
+
     fetchDeviceDetails();
+    fetchReviews();
+    fetchAverageRating();
   }, [id]);
 
   const handleReviewSubmit = async (e) => {
@@ -154,6 +170,12 @@ const DeviceDetails = () => {
     }
   };
 
+  // Función para comprobar si el usuario es el autor de una reseña
+  const isReviewAuthor = (review) => {
+    const currentUser = getCurrentUser();
+    return currentUser && review.user && currentUser.id === review.user.id;
+  };
+
   if (loading) {
     return (
       <div className="bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 min-h-screen">
@@ -183,9 +205,9 @@ const DeviceDetails = () => {
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-500 via-teal-500 to-green-500 min-h-screen">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
       <Header />
-      <Container maxWidth="lg" className="py-20">
+      <Container maxWidth="lg" className="flex-grow py-8">
         <Paper className="p-8 bg-white/90 backdrop-blur-sm rounded-xl shadow-xl">
           {/* Botones de navegación */}
           <Box className="flex justify-between items-center mb-6">
@@ -214,11 +236,7 @@ const DeviceDetails = () => {
               <div className="w-full h-96 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                 {device.imagen && !imageError ? (
                   <img
-                    src={
-                      device.imagen.startsWith("http")
-                        ? device.imagen
-                        : `${API_URL}${device.imagen}`
-                    }
+                    src={getImageUrl(device.imagen)}
                     alt={device.nombre}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
@@ -372,8 +390,7 @@ const DeviceDetails = () => {
                       <Typography variant="body2">{review.comment}</Typography>
                     </>
                   )}
-                  {review.user.id ===
-                    JSON.parse(localStorage.getItem("user"))?.id && (
+                  {isReviewAuthor(review) && (
                     <Box className="flex gap-2 mt-2">
                       <Button
                         size="small"
