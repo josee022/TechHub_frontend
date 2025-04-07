@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, IconButton, Menu, MenuItem, Avatar } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { getCurrentUser, getImageUrl } from '../../service/api';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -14,17 +13,32 @@ const Header = () => {
     const checkAuth = () => {
       try {
         const token = localStorage.getItem('token');
-        const user = getCurrentUser();
+        const userStr = localStorage.getItem('user');
+        console.log('DEBUG - Header - Token:', token ? 'exists' : 'not found');
+        console.log('DEBUG - Header - User data:', userStr);
         
-        if (token && user) {
+        if (token) {
           setIsLoggedIn(true);
-          setUserData(user);
+          if (userStr) {
+            try {
+              const userData = JSON.parse(userStr);
+              console.log('DEBUG - Header - Parsed user data:', userData);
+              setUserData(userData);
+            } catch (e) {
+              console.error('DEBUG - Header - Error parsing user data:', e);
+              setUserData(null);
+            }
+          } else {
+            console.log('DEBUG - Header - No user data found');
+            setUserData(null);
+          }
         } else {
+          console.log('DEBUG - Header - No token found, logging out');
           setIsLoggedIn(false);
           setUserData(null);
         }
       } catch (error) {
-        console.error('Error checking auth:', error);
+        console.error('DEBUG - Header - Error checking auth:', error);
         setIsLoggedIn(false);
         setUserData(null);
       }
@@ -33,14 +47,7 @@ const Header = () => {
     checkAuth();
     // Escuchar cambios en localStorage
     window.addEventListener('storage', checkAuth);
-    
-    // También verificar cada vez que el componente se monta
-    const interval = setInterval(checkAuth, 5000);
-    
-    return () => {
-      window.removeEventListener('storage', checkAuth);
-      clearInterval(interval);
-    };
+    return () => window.removeEventListener('storage', checkAuth);
   }, []);
 
   const handleMenu = (event) => {
@@ -81,7 +88,7 @@ const Header = () => {
               className="ml-2"
             >
               {userData?.avatar ? (
-                <Avatar src={getImageUrl(userData.avatar)} alt={userData.username} />
+                <Avatar src={userData.avatar} alt={userData.username} />
               ) : (
                 <AccountCircleIcon />
               )}
