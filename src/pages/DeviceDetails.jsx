@@ -7,8 +7,6 @@ import {
   createReview,
   deleteReview,
   updateReview,
-  getCurrentUser,
-  getImageUrl
 } from "../service/api";
 import {
   Container,
@@ -42,6 +40,7 @@ const DeviceDetails = () => {
   const [submitting, setSubmitting] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [editData, setEditData] = useState({ rating: 5, comment: "" });
+  const API_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
 
   useEffect(() => {
     const fetchDeviceDetails = async () => {
@@ -50,51 +49,36 @@ const DeviceDetails = () => {
         setDevice(data);
         setImageError(false);
 
-        // Verificar si el usuario actual es el propietario del dispositivo
-        const currentUser = getCurrentUser();
-        if (currentUser && data.user && currentUser.id === data.user.id) {
-          setIsOwner(true);
-        } else {
-          setIsOwner(false);
+        const userData = JSON.parse(localStorage.getItem("user"));
+        if (userData && data.user) {
+          const isAdmin = userData.role === "admin";
+          const isOwner = parseInt(userData.id) === parseInt(data.user.id);
+          setIsOwner(isAdmin || isOwner);
         }
 
-        setLoading(false);
-      } catch (error) {
-        console.error("Error al cargar detalles del dispositivo:", error);
-        setLoading(false);
-      }
-    };
+        // Obtener reseñas y puntuación
+        const [reviewData, averageData] = await Promise.all([
+          getDeviceReviews(id),
+          getAverageRating(id),
+        ]);
 
-    const fetchReviews = async () => {
-      try {
-        const reviewsData = await getDeviceReviews(id);
-        setReviews(reviewsData);
-        
-        // Verificar si el usuario actual ya tiene una reseña
-        const currentUser = getCurrentUser();
-        if (currentUser) {
-          const userReview = reviewsData.find(
-            (review) => review.user && review.user.id === currentUser.id
+        setReviews(reviewData);
+        setAverage(averageData);
+
+        if (userData) {
+          const userHasReview = reviewData.some(
+            (review) => review.user.id === userData.id
           );
-          setUserReviewExists(!!userReview);
+          setUserReviewExists(userHasReview);
         }
       } catch (error) {
-        console.error("Error al cargar reseñas:", error);
-      }
-    };
-
-    const fetchAverageRating = async () => {
-      try {
-        const avgData = await getAverageRating(id);
-        setAverage(avgData.average_rating);
-      } catch (error) {
-        console.error("Error al cargar puntuación media:", error);
+        console.error("Error al obtener los detalles del dispositivo:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchDeviceDetails();
-    fetchReviews();
-    fetchAverageRating();
   }, [id]);
 
   const handleReviewSubmit = async (e) => {
@@ -172,8 +156,8 @@ const DeviceDetails = () => {
 
   // Función para comprobar si el usuario es el autor de una reseña
   const isReviewAuthor = (review) => {
-    const currentUser = getCurrentUser();
-    return currentUser && review.user && currentUser.id === review.user.id;
+    const userData = JSON.parse(localStorage.getItem("user"));
+    return userData && review.user && userData.id === review.user.id;
   };
 
   if (loading) {
@@ -236,7 +220,7 @@ const DeviceDetails = () => {
               <div className="w-full h-96 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                 {device.imagen && !imageError ? (
                   <img
-                    src={getImageUrl(device.imagen)}
+                    src={API_URL + device.imagen}
                     alt={device.nombre}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
@@ -318,7 +302,7 @@ const DeviceDetails = () => {
                   <Box className="flex items-center gap-2 mb-1">
                     {review.user.avatar ? (
                       <img
-                        src={`http://localhost:8000${review.user.avatar}`}
+                        src={API_URL + review.user.avatar}
                         alt={review.user.username}
                         className="w-8 h-8 rounded-full"
                       />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getUserProfile, updateUserProfile, getImageUrl } from "../service/api";
+import { getUserProfile, updateUserProfile } from "../service/api";
 import { Typography, Container, Paper, TextField, Button, Box, Grid, Stack, Avatar } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Header from '../components/Home/Header';
@@ -28,6 +28,7 @@ const EditProfile = () => {
     location: "",
     avatar: null,
   });
+  const API_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,7 +125,7 @@ const EditProfile = () => {
                   <Avatar
                     src={formData.avatar instanceof File 
                       ? URL.createObjectURL(formData.avatar)
-                      : getImageUrl(formData.avatar)
+                      : `${API_URL}${formData.avatar}`
                     }
                     sx={{
                       width: 150,
