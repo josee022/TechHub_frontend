@@ -18,8 +18,8 @@ const ProductCard = ({ device }) => {
       <div className="w-full h-48 overflow-hidden bg-gray-100 flex items-center justify-center">
         {device.imagen && !imageError ? (
           <img
-            src={device.imagen.startsWith('http') ? device.imagen : `${API_URL}${device.imagen}`}
-            alt={device.nombre}
+          src={device.imagen.startsWith('http') ? device.imagen : `${API_URL}${device.imagen}`}
+          alt={device.nombre}
             className="w-full h-full object-cover"
             onError={() => setImageError(true)}
           />

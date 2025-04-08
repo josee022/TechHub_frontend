@@ -21,7 +21,7 @@ const EditDevice = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const API_URL = 'http://localhost:8000';
+  const API_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
   
   const [formData, setFormData] = useState({
     nombre: "",
@@ -50,7 +50,7 @@ const EditDevice = () => {
 
         // Si hay una imagen, establecer la preview
         if (data.imagen) {
-          setPreviewUrl(`${API_URL}${data.imagen}`);
+          setPreviewUrl(data.imagen.startsWith('http') ? data.imagen : `${API_URL.replace('/api', '')}${data.imagen}`);
         }
 
         setLoading(false);

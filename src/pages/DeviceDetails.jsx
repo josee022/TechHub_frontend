@@ -220,11 +220,11 @@ const DeviceDetails = () => {
               <div className="w-full h-96 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                 {device.imagen && !imageError ? (
                   <img
-                    src={API_URL + device.imagen}
-                    alt={device.nombre}
-                    className="w-full h-full object-cover"
-                    onError={() => setImageError(true)}
-                  />
+                  src={device.imagen.startsWith('http') ? device.imagen : `${API_URL.replace('/api', '')}${device.imagen}`}
+                  alt={device.nombre}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />                
                 ) : (
                   <div className="text-gray-400 flex flex-col items-center">
                     <ImageIcon sx={{ fontSize: 64, marginBottom: 2 }} />
@@ -302,10 +302,10 @@ const DeviceDetails = () => {
                   <Box className="flex items-center gap-2 mb-1">
                     {review.user.avatar ? (
                       <img
-                        src={API_URL + review.user.avatar}
-                        alt={review.user.username}
-                        className="w-8 h-8 rounded-full"
-                      />
+                      src={review.user.avatar.startsWith('http') ? review.user.avatar : `${API_URL.replace('/api', '')}${review.user.avatar}`}
+                      alt={review.user.username}
+                      className="w-8 h-8 rounded-full"
+                    />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold">
                         {review.user.username[0]}

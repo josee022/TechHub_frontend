@@ -88,7 +88,14 @@ const Header = () => {
               className="ml-2"
             >
               {userData?.avatar ? (
-                <Avatar src={userData.avatar} alt={userData.username} />
+                <Avatar
+                src={
+                  userData?.avatar?.startsWith("http")
+                    ? userData.avatar
+                    : import.meta.env.VITE_API_URL.replace('/api', '') + userData?.avatar
+                }
+                alt={userData?.username}
+              />              
               ) : (
                 <AccountCircleIcon />
               )}
