@@ -9,6 +9,7 @@ const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -27,11 +28,11 @@ const LoginPage = () => {
       } else {
         // Si no tenemos datos del usuario, hacer una petición al endpoint protegido
         try {
-          const userResponse = await fetch('http://localhost:8000/api/users/protected/', {
+          const userResponse = await fetch(`${API_URL}/users/protected/`, {
             headers: {
               'Authorization': `Bearer ${res.access}`
             }
-          });
+          });          
           const userData = await userResponse.json();
           if (userData.user) {
             localStorage.setItem("user", JSON.stringify(userData.user));
