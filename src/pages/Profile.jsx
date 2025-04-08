@@ -54,8 +54,8 @@ const ProfilePage = () => {
               <Grid item xs={12} md={4}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Avatar
-                    src={userData.avatar ? `http://localhost:8000${userData.avatar}` : undefined}
-                    sx={{
+src={userData.avatar ? (userData.avatar.startsWith('http') ? userData.avatar : `${import.meta.env.VITE_API_URL.replace('/api', '')}${userData.avatar}`) : undefined}
+sx={{
                       width: 150,
                       height: 150,
                       margin: '1rem auto',
