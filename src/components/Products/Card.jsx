@@ -8,7 +8,27 @@ import ImageIcon from '@mui/icons-material/Image';
 const ProductCard = ({ device }) => {
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
+  // Usar directamente el Cloud Name de Cloudinary
+  const CLOUDINARY_URL = "https://res.cloudinary.com/dkuodjfj3";
   const [imageError, setImageError] = useState(false);
+
+  // Función para determinar la URL correcta de la imagen
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    // Si ya es una URL completa, usarla directamente
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // Si es una ruta de Cloudinary (comienza con 'image/upload')
+    if (imagePath.includes('image/upload')) {
+      return `${CLOUDINARY_URL}/${imagePath}`;
+    }
+    
+    // Para rutas locales antiguas
+    return `${API_URL}${imagePath}`;
+  };
 
   return (
     <MuiCard 
@@ -18,8 +38,8 @@ const ProductCard = ({ device }) => {
       <div className="w-full h-48 overflow-hidden bg-gray-100 flex items-center justify-center">
         {device.imagen && !imageError ? (
           <img
-          src={device.imagen.startsWith('http') ? device.imagen : `${API_URL}${device.imagen}`}
-          alt={device.nombre}
+            src={getImageUrl(device.imagen)}
+            alt={device.nombre}
             className="w-full h-full object-cover"
             onError={() => setImageError(true)}
           />

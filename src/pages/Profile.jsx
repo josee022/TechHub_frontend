@@ -20,6 +20,27 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Usar directamente el Cloud Name de Cloudinary
+  const CLOUDINARY_URL = "https://res.cloudinary.com/dkuodjfj3";
+  const API_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
+
+  // Función para determinar la URL correcta de la imagen
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    // Si ya es una URL completa, usarla directamente
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    // Si es una ruta de Cloudinary (comienza con 'image/upload')
+    if (imagePath.includes('image/upload')) {
+      return `${CLOUDINARY_URL}/${imagePath}`;
+    }
+    
+    // Para rutas locales antiguas
+    return `${API_URL}${imagePath}`;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,8 +75,8 @@ const ProfilePage = () => {
               <Grid item xs={12} md={4}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Avatar
-src={userData.avatar ? (userData.avatar.startsWith('http') ? userData.avatar : `${import.meta.env.VITE_API_URL.replace('/api', '')}${userData.avatar}`) : undefined}
-sx={{
+                    src={userData.avatar ? getImageUrl(userData.avatar) : undefined}
+                    sx={{
                       width: 150,
                       height: 150,
                       margin: '1rem auto',

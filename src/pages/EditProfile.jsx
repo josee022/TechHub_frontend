@@ -29,6 +29,21 @@ const EditProfile = () => {
     avatar: null,
   });
   const API_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
+  const CLOUDINARY_URL = "https://res.cloudinary.com/dkuodjfj3";
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    if (imagePath.includes('image/upload')) {
+      return `${CLOUDINARY_URL}/${imagePath}`;
+    }
+    
+    return `${API_URL}${imagePath}`;
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,13 +97,11 @@ const EditProfile = () => {
     try {
       const formDataToSend = new FormData();
 
-      // Enviamos los campos individuales
       formDataToSend.append("username", formData.user.username);
       formDataToSend.append("email", formData.user.email);
       formDataToSend.append("bio", formData.bio);
       formDataToSend.append("location", formData.location);
       
-      // El avatar se envía solo si es un archivo nuevo
       if (formData.avatar instanceof File) {
         formDataToSend.append("avatar", formData.avatar);
       }
@@ -121,12 +134,9 @@ const EditProfile = () => {
           <StyledPaper>
             <Grid container spacing={4}>
               <Grid item xs={12} md={4}>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ textAlign: 'center', mb: 4 }}>
                   <Avatar
-                    src={formData.avatar instanceof File 
-                      ? URL.createObjectURL(formData.avatar)
-                      : `${API_URL}${formData.avatar}`
-                    }
+                    src={formData.avatar ? (formData.avatar instanceof File ? URL.createObjectURL(formData.avatar) : getImageUrl(formData.avatar)) : undefined}
                     sx={{
                       width: 150,
                       height: 150,
