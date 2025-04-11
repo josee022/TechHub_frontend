@@ -41,6 +41,21 @@ const DeviceDetails = () => {
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [editData, setEditData] = useState({ rating: 5, comment: "" });
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+  const CLOUDINARY_URL = "https://res.cloudinary.com/dkuodjfj3";
+
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    
+    if (imagePath.startsWith('http')) {
+      return imagePath;
+    }
+    
+    if (imagePath.includes('image/upload')) {
+      return `${CLOUDINARY_URL}/${imagePath}`;
+    }
+    
+    return `${API_URL.replace('/api', '')}${imagePath}`;
+  };
 
   useEffect(() => {
     const fetchDeviceDetails = async () => {
@@ -220,11 +235,11 @@ const DeviceDetails = () => {
               <div className="w-full h-96 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
                 {device.imagen && !imageError ? (
                   <img
-                  src={device.imagen.startsWith('http') ? device.imagen : `${API_URL.replace('/api', '')}${device.imagen}`}
-                  alt={device.nombre}
-                  className="w-full h-full object-cover"
-                  onError={() => setImageError(true)}
-                />                
+                    src={getImageUrl(device.imagen)}
+                    alt={device.nombre}
+                    className="w-full h-full object-cover"
+                    onError={() => setImageError(true)}
+                  />                
                 ) : (
                   <div className="text-gray-400 flex flex-col items-center">
                     <ImageIcon sx={{ fontSize: 64, marginBottom: 2 }} />
@@ -302,7 +317,7 @@ const DeviceDetails = () => {
                   <Box className="flex items-center gap-2 mb-1">
                     {review.user.avatar ? (
                       <img
-                      src={review.user.avatar.startsWith('http') ? review.user.avatar : `${API_URL.replace('/api', '')}${review.user.avatar}`}
+                      src={getImageUrl(review.user.avatar)}
                       alt={review.user.username}
                       className="w-8 h-8 rounded-full"
                     />
