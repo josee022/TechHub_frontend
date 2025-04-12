@@ -31,18 +31,23 @@ const EditProfile = () => {
   const API_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
   const CLOUDINARY_URL = "https://res.cloudinary.com/dkuodjfj3";
 
+  // Función para determinar la URL correcta de la imagen
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
     
+    // Si ya es una URL completa, usarla directamente
     if (imagePath.startsWith('http')) {
       return imagePath;
     }
     
+    // Si es una ruta de Cloudinary (comienza con 'image/upload')
     if (imagePath.includes('image/upload')) {
-      return `${CLOUDINARY_URL}/${imagePath}`;
+      // Asegurarse de que no haya doble barra entre el dominio y la ruta
+      return `${CLOUDINARY_URL}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
     }
     
-    return `${API_URL}${imagePath}`;
+    // Para rutas locales antiguas
+    return `${API_URL}${!imagePath.startsWith('/') ? '/' : ''}${imagePath}`;
   };
 
   useEffect(() => {
