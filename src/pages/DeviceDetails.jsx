@@ -11,24 +11,24 @@ import {
 } from "../service/api";
 import {
   Container,
-  Paper,
   Typography,
+  Paper,
   Grid,
   Chip,
   Box,
   Button,
   IconButton,
   TextField,
-  Avatar,
-  StarIcon,
-  EditIcon
+  Avatar
 } from "@mui/material";
 import Header from "../components/Home/Header";
 import Footer from "../components/Home/Footer";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import EditIcon from "@mui/icons-material/Edit";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageIcon from "@mui/icons-material/Image";
+import StarIcon from "@mui/icons-material/Star";
 
 const DeviceDetails = () => {
   const { id } = useParams();
