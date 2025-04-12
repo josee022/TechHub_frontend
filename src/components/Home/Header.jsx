@@ -87,15 +87,20 @@ const Header = () => {
               color="inherit"
               className="ml-2"
             >
-              {userData?.avatar ? (
+              {userData?.username ? (
                 <Avatar
-                src={
-                  userData?.avatar?.startsWith("http")
-                    ? userData.avatar
-                    : import.meta.env.VITE_API_URL.replace('/api', '') + userData?.avatar
-                }
-                alt={userData?.username}
-              />              
+                  src={userData?.avatar_url || null}
+                  alt={userData?.username}
+                  sx={{ 
+                    width: 40, 
+                    height: 40,
+                    border: '2px solid white',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    bgcolor: !userData?.avatar_url ? '#1565c0' : undefined
+                  }}
+                >
+                  {!userData?.avatar_url && userData?.username?.charAt(0).toUpperCase()}
+                </Avatar>              
               ) : (
                 <AccountCircleIcon />
               )}

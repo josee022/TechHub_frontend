@@ -7,6 +7,7 @@ import {
   createReview,
   deleteReview,
   updateReview,
+  deleteDevice
 } from "../service/api";
 import {
   Container,
@@ -16,12 +17,16 @@ import {
   Chip,
   Box,
   Button,
+  IconButton,
+  TextField,
+  Avatar,
+  StarIcon,
+  EditIcon
 } from "@mui/material";
 import Header from "../components/Home/Header";
 import Footer from "../components/Home/Footer";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import EditIcon from "@mui/icons-material/Edit";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageIcon from "@mui/icons-material/Image";
 
@@ -199,30 +204,55 @@ const DeviceDetails = () => {
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate("/products")}
               variant="outlined"
+              className="hover:bg-blue-50"
             >
               Volver
             </Button>
-            {isOwner && (
-              <Button
-                startIcon={<EditIcon />}
-                onClick={() => navigate(`/edit-device/${id}`)}
-                variant="contained"
-                color="primary"
-              >
-                Editar Dispositivo
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {isOwner && (
+                <>
+                  <Button
+                    startIcon={<EditIcon />}
+                    onClick={() => navigate(`/edit-device/${id}`)}
+                    variant="contained"
+                    color="primary"
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      if (window.confirm("¿Estás seguro de que quieres eliminar este dispositivo?")) {
+                        deleteDevice(id)
+                          .then(() => {
+                            navigate("/products");
+                          })
+                          .catch((error) => {
+                            console.error("Error al eliminar el dispositivo:", error);
+                            alert("No se pudo eliminar el dispositivo");
+                          });
+                      }
+                    }}
+                    variant="contained"
+                    color="error"
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Eliminar
+                  </Button>
+                </>
+              )}
+            </div>
           </Box>
 
           <Grid container spacing={4}>
             {/* Imagen del dispositivo */}
             <Grid item xs={12} md={6}>
-              <div className="w-full h-96 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+              <div className="w-full h-96 rounded-xl overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 shadow-md flex items-center justify-center">
                 {device.imagen_url && !imageError ? (
                   <img
                     src={device.imagen_url}
                     alt={device.nombre}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                     onError={() => setImageError(true)}
                   />                
                 ) : (
@@ -238,219 +268,270 @@ const DeviceDetails = () => {
 
             {/* Detalles del dispositivo */}
             <Grid item xs={12} md={6}>
-              <Typography variant="h4" className="font-bold mb-4">
-                {device.nombre}
-              </Typography>
+              <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-md h-full">
+                <Typography variant="h4" className="font-bold mb-4 text-blue-800 border-b pb-2">
+                  {device.nombre}
+                </Typography>
 
-              <Box className="flex gap-2 mb-4">
-                <Chip
-                  label={device.estado ? "Activo" : "Inactivo"}
-                  color={device.estado ? "success" : "error"}
-                />
-                <Chip label={device.tipo} color="primary" />
-              </Box>
+                <Box className="flex gap-2 mb-4">
+                  <Chip
+                    label={device.estado ? "Activo" : "Inactivo"}
+                    color={device.estado ? "success" : "error"}
+                    className="shadow-sm"
+                  />
+                  <Chip 
+                    label={device.tipo} 
+                    color="primary" 
+                    className="shadow-sm"
+                  />
+                </Box>
 
-              <Typography variant="body1" className="mb-4">
-                {device.descripcion || "Sin descripción"}
-              </Typography>
+                <Typography variant="body1" className="mb-6 text-gray-700 bg-blue-50 p-4 rounded-lg">
+                  {device.descripcion || "Sin descripción"}
+                </Typography>
 
-              <Box className="space-y-2 mb-4">
-                <Typography variant="body2">
-                  <strong>Ubicación:</strong>{" "}
-                  {device.ubicacion || "No especificada"}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Modelo de Firmware:</strong>{" "}
-                  {device.modelo_firmware || "No especificado"}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Propietario:</strong>{" "}
-                  {device.user?.username || "No especificado"}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Fecha de Creación:</strong>{" "}
-                  {format(new Date(device.fecha_creacion), "PPp", {
-                    locale: es,
-                  })}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Última Actualización:</strong>{" "}
-                  {format(new Date(device.last_updated), "PPp", { locale: es })}
-                </Typography>
-              </Box>
+                <Box className="space-y-3 mb-4 bg-gray-50 p-4 rounded-lg">
+                  <Typography variant="subtitle1" className="font-semibold text-blue-800">
+                    Información Técnica
+                  </Typography>
+                  <div className="grid grid-cols-1 gap-2">
+                    <Typography variant="body2" className="flex justify-between">
+                      <span className="font-medium text-gray-700">Ubicación:</span>
+                      <span className="text-gray-900">{device.ubicacion || "No especificada"}</span>
+                    </Typography>
+                    <Typography variant="body2" className="flex justify-between">
+                      <span className="font-medium text-gray-700">Modelo de Firmware:</span>
+                      <span className="text-gray-900">{device.modelo_firmware || "No especificado"}</span>
+                    </Typography>
+                    <Typography variant="body2" className="flex justify-between">
+                      <span className="font-medium text-gray-700">Propietario:</span>
+                      <span className="text-gray-900">{device.user?.username || "No especificado"}</span>
+                    </Typography>
+                    <Typography variant="body2" className="flex justify-between">
+                      <span className="font-medium text-gray-700">Fecha de Creación:</span>
+                      <span className="text-gray-900">{format(new Date(device.fecha_creacion), "PPp", {
+                        locale: es,
+                      })}</span>
+                    </Typography>
+                    <Typography variant="body2" className="flex justify-between">
+                      <span className="font-medium text-gray-700">Última Actualización:</span>
+                      <span className="text-gray-900">{format(new Date(device.last_updated), "PPp", { locale: es })}</span>
+                    </Typography>
+                  </div>
+                </Box>
+                
+                {average && (
+                  <div className="bg-blue-600 text-white p-3 rounded-lg shadow-md flex items-center justify-center mt-4">
+                    <StarIcon sx={{ color: '#FFD700', marginRight: 1 }} />
+                    <Typography variant="h6" className="font-bold">
+                      {average.average_rating || 0}
+                      <span className="text-sm font-normal ml-1">/ 5</span>
+                    </Typography>
+                    <Typography variant="body2" className="ml-2">
+                      basado en {average.review_count} {average.review_count === 1 ? 'reseña' : 'reseñas'}
+                    </Typography>
+                  </div>
+                )}
+              </div>
             </Grid>
           </Grid>
+          
+          {/* Sección de reseñas */}
           <Box className="mt-10">
-            <Typography variant="h5" className="font-bold mb-4">
+            <Typography variant="h5" className="font-bold mb-4 text-blue-800 border-b pb-2">
               Reseñas
             </Typography>
 
-            {average && (
-              <Typography variant="body1" className="mb-2">
-                ⭐ <strong>{average.average_rating || 0}</strong>/5 basado en{" "}
-                {average.review_count} reseñas
-              </Typography>
+            {!userReviewExists && (
+              <Paper className="p-6 mb-6 bg-blue-50 rounded-xl shadow-md">
+                <Typography variant="h6" className="mb-3 font-semibold text-blue-800">
+                  ¿Has usado este dispositivo? ¡Comparte tu experiencia!
+                </Typography>
+                <form onSubmit={handleReviewSubmit} className="space-y-4">
+                  <div className="flex items-center">
+                    <Typography variant="body1" className="mr-4 font-medium">
+                      Calificación:
+                    </Typography>
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <IconButton
+                          key={star}
+                          onClick={() => setRating(star)}
+                          size="small"
+                        >
+                          <StarIcon
+                            sx={{
+                              color: star <= rating ? "#FFB400" : "#D1D5DB",
+                              fontSize: 28,
+                            }}
+                          />
+                        </IconButton>
+                      ))}
+                    </div>
+                  </div>
+                  <TextField
+                    label="Tu comentario"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    multiline
+                    rows={3}
+                    fullWidth
+                    variant="outlined"
+                    className="bg-white rounded-lg"
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    disabled={submitting}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {submitting ? "Enviando..." : "Enviar Reseña"}
+                  </Button>
+                </form>
+              </Paper>
             )}
 
             {reviews.length === 0 ? (
-              <Typography variant="body2">
-                Aún no hay reseñas para este dispositivo.
+              <Typography variant="body2" className="text-gray-600 italic">
+                Aún no hay reseñas para este dispositivo. ¡Sé el primero en opinar!
               </Typography>
             ) : (
-              reviews.map((review) => (
-                <Paper key={review.id} className="p-4 mb-4">
-                  <Box className="flex items-center gap-2 mb-1">
-                    {review.user.avatar_url ? (
-                      <img
-                        src={review.user.avatar_url}
-                        alt={review.user.username}
-                        className="w-8 h-8 rounded-full"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold">
-                        {review.user.username[0]}
-                      </div>
-                    )}
-                    <Typography variant="subtitle2">
-                      {review.user.username}
-                    </Typography>
-                  </Box>
-                  {editingReviewId === review.id ? (
-                    <Box
-                      component="form"
-                      onSubmit={handleEditSubmit}
-                      className="mt-2 space-y-2"
-                    >
-                      <select
-                        value={editData.rating}
-                        onChange={(e) =>
-                          setEditData({
-                            ...editData,
-                            rating: Number(e.target.value),
-                          })
-                        }
-                        className="w-full border rounded px-3 py-2"
-                      >
-                        {[5, 4, 3, 2, 1].map((value) => (
-                          <option key={value} value={value}>
-                            {value} ⭐
-                          </option>
-                        ))}
-                      </select>
-                      <textarea
-                        value={editData.comment}
-                        onChange={(e) =>
-                          setEditData({ ...editData, comment: e.target.value })
-                        }
-                        rows={3}
-                        className="w-full border rounded px-3 py-2"
-                        minLength={10}
-                        required
-                      />
-                      <Box className="flex gap-2">
-                        <Button
-                          type="submit"
-                          size="small"
-                          variant="contained"
-                          color="primary"
-                        >
-                          Guardar
-                        </Button>
-                        <Button
-                          size="small"
+              <div className="space-y-4">
+                {reviews.map((review) => (
+                  <Paper key={review.id} className="p-5 mb-4 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                    {editingReviewId === review.id ? (
+                      <form onSubmit={handleEditSubmit} className="space-y-4">
+                        <div className="flex items-center">
+                          <Typography variant="body1" className="mr-4 font-medium">
+                            Calificación:
+                          </Typography>
+                          <div className="flex">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <IconButton
+                                key={star}
+                                onClick={() =>
+                                  setEditData({ ...editData, rating: star })
+                                }
+                                size="small"
+                              >
+                                <StarIcon
+                                  sx={{
+                                    color:
+                                      star <= editData.rating
+                                        ? "#FFB400"
+                                        : "#D1D5DB",
+                                    fontSize: 28,
+                                  }}
+                                />
+                              </IconButton>
+                            ))}
+                          </div>
+                        </div>
+                        <TextField
+                          label="Tu comentario"
+                          value={editData.comment}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              comment: e.target.value,
+                            })
+                          }
+                          multiline
+                          rows={3}
+                          fullWidth
                           variant="outlined"
-                          color="inherit"
-                          onClick={() => setEditingReviewId(null)}
-                        >
-                          Cancelar
-                        </Button>
-                      </Box>
-                    </Box>
-                  ) : (
-                    <>
-                      <Typography variant="body2" className="mb-1">
-                        ⭐ {review.rating} / 5
-                      </Typography>
-                      <Typography variant="body2">{review.comment}</Typography>
-                    </>
-                  )}
-                  {isReviewAuthor(review) && (
-                    <Box className="flex gap-2 mt-2">
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="success"
-                        onClick={() => handleEditClick(review)}
-                      >
-                        ✏️
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        onClick={() => handleDeleteClick(review.id)}
-                      >
-                        🗑️
-                      </Button>
-                    </Box>
-                  )}
-                  <Typography variant="caption" color="textSecondary">
-                    {new Date(review.created_at).toLocaleString()}
-                  </Typography>
-                </Paper>
-              ))
+                          className="bg-white rounded-lg"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            Guardar Cambios
+                          </Button>
+                          <Button
+                            onClick={() => setEditingReviewId(null)}
+                            variant="outlined"
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </form>
+                    ) : (
+                      <>
+                        <Box className="flex items-center gap-3 mb-3">
+                          {review.user.avatar_url ? (
+                            <Avatar
+                              src={review.user.avatar_url}
+                              alt={review.user.username}
+                              className="w-10 h-10 border-2 border-white shadow-sm"
+                            />
+                          ) : (
+                            <Avatar
+                              className="w-10 h-10 bg-blue-600 text-white font-bold"
+                            >
+                              {review.user.username[0].toUpperCase()}
+                            </Avatar>
+                          )}
+                          <div>
+                            <Typography variant="subtitle1" className="font-semibold">
+                              {review.user.username}
+                            </Typography>
+                            <Typography variant="caption" className="text-gray-500">
+                              {format(
+                                new Date(review.created_at),
+                                "d 'de' MMMM, yyyy",
+                                { locale: es }
+                              )}
+                            </Typography>
+                          </div>
+                          <div className="ml-auto flex">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <StarIcon
+                                key={star}
+                                sx={{
+                                  color:
+                                    star <= review.rating ? "#FFB400" : "#D1D5DB",
+                                  fontSize: 20,
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </Box>
+                        <Typography variant="body1" className="mb-3 text-gray-700 bg-gray-50 p-3 rounded-lg">
+                          {review.comment}
+                        </Typography>
+                        {isReviewAuthor(review) && (
+                          <Box className="flex justify-end gap-2">
+                            <Button
+                              onClick={() => handleEditClick(review)}
+                              size="small"
+                              startIcon={<EditIcon />}
+                              variant="outlined"
+                              color="primary"
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteClick(review.id)}
+                              size="small"
+                              variant="outlined"
+                              color="error"
+                            >
+                              Eliminar
+                            </Button>
+                          </Box>
+                        )}
+                      </>
+                    )}
+                  </Paper>
+                ))}
+              </div>
             )}
           </Box>
-          {!userReviewExists && (
-            <Box
-              component="form"
-              onSubmit={handleReviewSubmit}
-              className="mt-6 p-4 border rounded-lg bg-white/80"
-            >
-              <Typography variant="h6" className="mb-2">
-                Deja tu reseña
-              </Typography>
-
-              <Box className="mb-3">
-                <label className="block mb-1 font-medium">
-                  Puntuación (1-5):
-                </label>
-                <select
-                  value={rating}
-                  onChange={(e) => setRating(Number(e.target.value))}
-                  className="w-full border rounded px-3 py-2"
-                >
-                  {[5, 4, 3, 2, 1].map((value) => (
-                    <option key={value} value={value}>
-                      {value} ⭐
-                    </option>
-                  ))}
-                </select>
-              </Box>
-
-              <Box className="mb-3">
-                <label className="block mb-1 font-medium">Comentario:</label>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  rows={4}
-                  className="w-full border rounded px-3 py-2"
-                  placeholder="Escribe tu opinión aquí..."
-                  required
-                  minLength={10}
-                />
-              </Box>
-
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={submitting}
-              >
-                {submitting ? "Enviando..." : "Enviar reseña"}
-              </Button>
-            </Box>
-          )}
         </Paper>
       </Container>
       <Footer />
