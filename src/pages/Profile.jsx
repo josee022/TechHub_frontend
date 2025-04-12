@@ -35,11 +35,12 @@ const ProfilePage = () => {
     
     // Si es una ruta de Cloudinary (comienza con 'image/upload')
     if (imagePath.includes('image/upload')) {
-      return `${CLOUDINARY_URL}/${imagePath}`;
+      // Asegurarse de que no haya doble barra entre el dominio y la ruta
+      return `${CLOUDINARY_URL}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
     }
     
     // Para rutas locales antiguas
-    return `${API_URL}${imagePath}`;
+    return `${API_URL}${!imagePath.startsWith('/') ? '/' : ''}${imagePath}`;
   };
 
   useEffect(() => {
