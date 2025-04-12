@@ -41,26 +41,6 @@ const DeviceDetails = () => {
   const [editingReviewId, setEditingReviewId] = useState(null);
   const [editData, setEditData] = useState({ rating: 5, comment: "" });
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-  const CLOUDINARY_URL = "https://res.cloudinary.com/dkuodjfj3";
-
-  // Función para determinar la URL correcta de la imagen
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    
-    // Si ya es una URL completa, usarla directamente
-    if (imagePath.startsWith('http')) {
-      return imagePath;
-    }
-    
-    // Si es una ruta de Cloudinary (comienza con 'image/upload')
-    if (imagePath.includes('image/upload')) {
-      // Asegurarse de que no haya doble barra entre el dominio y la ruta
-      return `${CLOUDINARY_URL}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
-    }
-    
-    // Para rutas locales antiguas
-    return `${API_URL.replace('/api', '')}${!imagePath.startsWith('/') ? '/' : ''}${imagePath}`;
-  };
 
   useEffect(() => {
     const fetchDeviceDetails = async () => {
@@ -238,9 +218,9 @@ const DeviceDetails = () => {
             {/* Imagen del dispositivo */}
             <Grid item xs={12} md={6}>
               <div className="w-full h-96 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                {device.imagen && !imageError ? (
+                {device.imagen_url && !imageError ? (
                   <img
-                    src={getImageUrl(device.imagen)}
+                    src={device.imagen_url}
                     alt={device.nombre}
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
@@ -320,12 +300,12 @@ const DeviceDetails = () => {
               reviews.map((review) => (
                 <Paper key={review.id} className="p-4 mb-4">
                   <Box className="flex items-center gap-2 mb-1">
-                    {review.user.avatar ? (
+                    {review.user.avatar_url ? (
                       <img
-                      src={getImageUrl(review.user.avatar)}
-                      alt={review.user.username}
-                      className="w-8 h-8 rounded-full"
-                    />
+                        src={review.user.avatar_url}
+                        alt={review.user.username}
+                        className="w-8 h-8 rounded-full"
+                      />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-sm font-bold">
                         {review.user.username[0]}
