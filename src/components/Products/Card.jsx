@@ -7,29 +7,7 @@ import ImageIcon from '@mui/icons-material/Image';
 
 const ProductCard = ({ device }) => {
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
-  // Usar directamente el Cloud Name de Cloudinary
-  const CLOUDINARY_URL = "https://res.cloudinary.com/dkuodjfj3";
   const [imageError, setImageError] = useState(false);
-
-  // Función para determinar la URL correcta de la imagen
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    
-    // Si ya es una URL completa, usarla directamente
-    if (imagePath.startsWith('http')) {
-      return imagePath;
-    }
-    
-    // Si es una ruta de Cloudinary (comienza con 'image/upload')
-    if (imagePath.includes('image/upload')) {
-      // Asegurarse de que no haya doble barra entre el dominio y la ruta
-      return `${CLOUDINARY_URL}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
-    }
-    
-    // Para rutas locales antiguas
-    return `${API_URL}${!imagePath.startsWith('/') ? '/' : ''}${imagePath}`;
-  };
 
   return (
     <MuiCard 
@@ -37,9 +15,9 @@ const ProductCard = ({ device }) => {
       onClick={() => navigate(`/device/${device.id}`)}
     >
       <div className="w-full h-48 overflow-hidden bg-gray-100 flex items-center justify-center">
-        {device.imagen && !imageError ? (
+        {device.imagen_url && !imageError ? (
           <img
-            src={getImageUrl(device.imagen)}
+            src={device.imagen_url}
             alt={device.nombre}
             className="w-full h-full object-cover"
             onError={() => setImageError(true)}
@@ -70,18 +48,19 @@ const ProductCard = ({ device }) => {
           />
         </Box>
 
-        <Typography variant="body2" color="text.secondary" className="mb-2">
+        <Typography variant="body2" className="text-gray-600 mb-2 line-clamp-2">
           {device.descripcion || "Sin descripción"}
         </Typography>
 
-        <Box className="mt-4 space-y-1">
-          <Typography variant="caption" className="text-gray-600 block">
-            <strong>Propietario:</strong> {device.user?.username || "No especificado"}
+        <Typography variant="caption" className="text-gray-500 block">
+          {device.fecha_creacion && format(new Date(device.fecha_creacion), "PPP", { locale: es })}
+        </Typography>
+
+        {device.average_rating > 0 && (
+          <Typography variant="body2" className="mt-1">
+            ⭐ {device.average_rating.toFixed(1)} ({device.review_count})
           </Typography>
-          <Typography variant="caption" className="text-gray-600 block">
-            <strong>Creado:</strong> {format(new Date(device.fecha_creacion), "PPp", { locale: es })}
-          </Typography>
-        </Box>
+        )}
       </CardContent>
     </MuiCard>
   );

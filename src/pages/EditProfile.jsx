@@ -27,28 +27,9 @@ const EditProfile = () => {
     bio: "",
     location: "",
     avatar: null,
+    avatar_url: "",
   });
   const API_URL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:8000';
-  const CLOUDINARY_URL = "https://res.cloudinary.com/dkuodjfj3";
-
-  // Función para determinar la URL correcta de la imagen
-  const getImageUrl = (imagePath) => {
-    if (!imagePath) return null;
-    
-    // Si ya es una URL completa, usarla directamente
-    if (imagePath.startsWith('http')) {
-      return imagePath;
-    }
-    
-    // Si es una ruta de Cloudinary (comienza con 'image/upload')
-    if (imagePath.includes('image/upload')) {
-      // Asegurarse de que no haya doble barra entre el dominio y la ruta
-      return `${CLOUDINARY_URL}/${imagePath.startsWith('/') ? imagePath.substring(1) : imagePath}`;
-    }
-    
-    // Para rutas locales antiguas
-    return `${API_URL}${!imagePath.startsWith('/') ? '/' : ''}${imagePath}`;
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,6 +46,7 @@ const EditProfile = () => {
           bio: response.bio || "",
           location: response.location || "",
           avatar: response.avatar || null,
+          avatar_url: response.avatar_url || "",
         });
       } catch (error) {
         console.error("Error al cargar los datos del perfil", error);
@@ -141,7 +123,7 @@ const EditProfile = () => {
               <Grid item xs={12} md={4}>
                 <Box sx={{ textAlign: 'center', mb: 4 }}>
                   <Avatar
-                    src={formData.avatar ? (formData.avatar instanceof File ? URL.createObjectURL(formData.avatar) : getImageUrl(formData.avatar)) : undefined}
+                    src={formData.avatar instanceof File ? URL.createObjectURL(formData.avatar) : formData.avatar_url}
                     sx={{
                       width: 150,
                       height: 150,
