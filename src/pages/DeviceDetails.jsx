@@ -31,6 +31,49 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ImageIcon from "@mui/icons-material/Image";
 import StarIcon from "@mui/icons-material/Star";
 
+const formatDate = (date) => {
+  if (!date) return "No disponible";
+  try {
+    return format(new Date(date), 'dd/MM/yyyy', { locale: es });
+  } catch (error) {
+    console.error("Error al formatear fecha:", error, date);
+    return "Fecha inválida";
+  }
+};
+
+const getLastUpdateDate = (device) => {
+  if (!device) return "No disponible";
+  
+  // Intentar todos los posibles campos para la fecha de última actualización
+  const possibleFields = [
+    'fecha_actualizacion', 
+    'updated_at', 
+    'updatedAt', 
+    'updated', 
+    'fecha_modificacion', 
+    'last_edited', 
+    'ultima_edicion', 
+    'last_modified',
+    'modified_at'
+  ];
+  
+  // Buscar el primer campo que exista y tenga un valor
+  for (const field of possibleFields) {
+    if (device[field]) {
+      return formatDate(device[field]);
+    }
+  }
+  
+  // Si no se encuentra ningún campo específico, usar la fecha de creación
+  // como fallback (asumiendo que si no se ha actualizado, la fecha de creación
+  // es también la de última actualización)
+  if (device.fecha_creacion || device.created_at || device.createdAt || device.created) {
+    return formatDate(device.fecha_creacion || device.created_at || device.createdAt || device.created);
+  }
+  
+  return "No disponible";
+};
+
 const DeviceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -54,6 +97,25 @@ const DeviceDetails = () => {
         const data = await getDeviceDetails(id);
         setDevice(data);
         setImageError(false);
+        
+        // Log más específico para fechas
+        console.log("Datos completos del dispositivo:", data);
+        console.log("Campos disponibles:", Object.keys(data));
+        
+        // Buscar todos los campos que podrían contener fechas
+        const dateFields = Object.keys(data).filter(key => 
+          key.toLowerCase().includes('date') || 
+          key.toLowerCase().includes('fecha') || 
+          key.toLowerCase().includes('crea') || 
+          key.toLowerCase().includes('actua') ||
+          key.toLowerCase().includes('updat') ||
+          key.toLowerCase().includes('edit')
+        );
+        
+        console.log("Posibles campos de fecha:", dateFields);
+        dateFields.forEach(field => {
+          console.log(`Campo ${field}:`, data[field]);
+        });
 
         const userData = JSON.parse(localStorage.getItem("user"));
         if (userData && data.user) {
@@ -89,6 +151,13 @@ const DeviceDetails = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validar longitud mínima del comentario
+    if (comment.trim().length < 10) {
+      alert("El comentario debe tener al menos 10 caracteres.");
+      return;
+    }
+    
     setSubmitting(true);
 
     try {
@@ -143,6 +212,13 @@ const DeviceDetails = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validar longitud mínima del comentario
+    if (editData.comment.trim().length < 10) {
+      alert("El comentario debe tener al menos 10 caracteres.");
+      return;
+    }
+    
     try {
       await updateReview(id, editingReviewId, editData);
 
@@ -155,7 +231,11 @@ const DeviceDetails = () => {
       setAverage(newAverage);
       setEditingReviewId(null); // Cerrar formulario
     } catch (error) {
-      alert("Error al actualizar la reseña.");
+      if (error.response?.data?.comment) {
+        alert("El comentario debe tener al menos 10 caracteres.");
+      } else {
+        alert("Error al actualizar la reseña.");
+      }
       console.error(error);
     }
   };
@@ -596,7 +676,7 @@ const DeviceDetails = () => {
                           Fecha de creación:
                         </Typography>
                         <Typography variant="body2" sx={{ color: "#37474f" }}>
-                          {new Date(device.created_at).toLocaleDateString()}
+                          {formatDate(device.fecha_creacion || device.created_at || device.createdAt || device.created)}
                         </Typography>
                       </Box>
                     </Grid>
@@ -616,7 +696,7 @@ const DeviceDetails = () => {
                           Última actualización:
                         </Typography>
                         <Typography variant="body2" sx={{ color: "#37474f" }}>
-                          {new Date(device.updated_at).toLocaleDateString()}
+                          {getLastUpdateDate(device)}
                         </Typography>
                       </Box>
                     </Grid>
@@ -636,7 +716,7 @@ const DeviceDetails = () => {
                           Propietario:
                         </Typography>
                         <Typography variant="body2" sx={{ color: "#37474f" }}>
-                          {device.owner ? device.owner.username : "Desconocido"}
+                          {device.user ? device.user.username : "Desconocido"}
                         </Typography>
                       </Box>
                     </Grid>

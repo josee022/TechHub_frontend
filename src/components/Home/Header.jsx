@@ -393,7 +393,7 @@ const Header = () => {
                   </Menu>
                 </motion.div>
               ) : (
-                <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <motion.div
                     custom={4}
                     initial="hidden"

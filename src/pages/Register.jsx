@@ -51,8 +51,8 @@ const RegisterPage = () => {
   const steps = ['Información personal', 'Credenciales', 'Confirmación'];
 
   const validateUsername = () => {
-    if (username.length < 3) {
-      setUsernameError("El nombre de usuario debe tener al menos 3 caracteres");
+    if (!username.trim()) {
+      setUsernameError("El nombre de usuario es obligatorio");
       return false;
     }
     setUsernameError("");
@@ -60,6 +60,10 @@ const RegisterPage = () => {
   };
 
   const validateEmail = () => {
+    if (!email.trim()) {
+      setEmailError("El correo electrónico es obligatorio");
+      return false;
+    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setEmailError("Introduce un correo electrónico válido");
@@ -70,8 +74,8 @@ const RegisterPage = () => {
   };
 
   const validatePassword = () => {
-    if (password.length < 8) {
-      setPasswordError("La contraseña debe tener al menos 8 caracteres");
+    if (!password) {
+      setPasswordError("La contraseña es obligatoria");
       return false;
     }
     setPasswordError("");
@@ -79,7 +83,10 @@ const RegisterPage = () => {
   };
 
   const validateConfirmPassword = () => {
-    if (password !== confirmPassword) {
+    if (!confirmPassword) {
+      setConfirmPasswordError("Debes confirmar la contraseña");
+      return false;
+    } else if (password !== confirmPassword) {
       setConfirmPasswordError("Las contraseñas no coinciden");
       return false;
     }

@@ -31,6 +31,8 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [usernameError, setUsernameError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
   // Efecto para las partículas de fondo
@@ -41,9 +43,37 @@ const LoginPage = () => {
     return cleanup;
   }, []);
 
+  const validateForm = () => {
+    let isValid = true;
+    
+    // Validar nombre de usuario
+    if (!username.trim()) {
+      setUsernameError("El nombre de usuario es obligatorio");
+      isValid = false;
+    } else {
+      setUsernameError("");
+    }
+    
+    // Validar contraseña
+    if (!password) {
+      setPasswordError("La contraseña es obligatoria");
+      isValid = false;
+    } else {
+      setPasswordError("");
+    }
+    
+    return isValid;
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    
+    // Validar formulario antes de enviar
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -178,8 +208,18 @@ const LoginPage = () => {
                       variant="outlined"
                       fullWidth
                       value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        if (usernameError) setUsernameError("");
+                      }}
+                      onBlur={() => {
+                        if (!username.trim()) {
+                          setUsernameError("El nombre de usuario es obligatorio");
+                        }
+                      }}
                       required
+                      error={!!usernameError}
+                      helperText={usernameError}
                       sx={{ mb: 3 }}
                       InputProps={{
                         startAdornment: (
@@ -196,8 +236,18 @@ const LoginPage = () => {
                       fullWidth
                       type={showPassword ? "text" : "password"}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (passwordError) setPasswordError("");
+                      }}
+                      onBlur={() => {
+                        if (!password) {
+                          setPasswordError("La contraseña es obligatoria");
+                        }
+                      }}
                       required
+                      error={!!passwordError}
+                      helperText={passwordError}
                       sx={{ mb: 2 }}
                       InputProps={{
                         startAdornment: (
@@ -350,10 +400,10 @@ const LoginPage = () => {
                 <Box 
                   sx={{ 
                     position: 'absolute',
-                    bottom: -30,
-                    right: -30,
-                    width: 150,
-                    height: 150,
+                    bottom: -50,
+                    right: -50,
+                    width: 200,
+                    height: 200,
                     borderRadius: '50%',
                     background: 'rgba(255, 255, 255, 0.1)',
                   }} 
