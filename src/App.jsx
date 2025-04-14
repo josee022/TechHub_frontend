@@ -10,6 +10,8 @@ import DeviceDetails from "./pages/DeviceDetails";
 import CreateDevice from "./pages/CreateDevice";
 import EditDevice from "./pages/EditDevice";
 import Dashboard from "./pages/Dashboard";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 function App() {
 
@@ -72,6 +74,22 @@ function App() {
         element={
           <PrivateRoute>
             <EditProfile />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/about"
+        element={
+          <PrivateRoute>
+            <About />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <PrivateRoute>
+            <Contact />
           </PrivateRoute>
         }
       />

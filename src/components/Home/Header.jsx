@@ -23,6 +23,8 @@ import DevicesIcon from '@mui/icons-material/Devices';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import MenuIcon from '@mui/icons-material/Menu';
+import InfoIcon from '@mui/icons-material/Info';
+import ContactSupportIcon from '@mui/icons-material/ContactSupport';
 import { motion } from 'framer-motion';
 
 // Componente para ocultar el AppBar al hacer scroll hacia abajo
@@ -241,6 +243,58 @@ const Header = () => {
                       Informes
                     </Button>
                   </motion.div>
+
+                  <motion.div
+                    custom={2}
+                    initial="hidden"
+                    animate="visible"
+                    variants={navItemVariants}
+                  >
+                    <Button 
+                      component={Link} 
+                      to="/about"
+                      startIcon={<InfoIcon />}
+                      sx={{ 
+                        color: 'white', 
+                        mx: 1,
+                        opacity: isActive('/about') ? 1 : 0.8,
+                        borderBottom: isActive('/about') ? '2px solid #3b82f6' : 'none',
+                        borderRadius: 0,
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                          opacity: 1
+                        }
+                      }}
+                    >
+                      Sobre Nosotros
+                    </Button>
+                  </motion.div>
+
+                  <motion.div
+                    custom={3}
+                    initial="hidden"
+                    animate="visible"
+                    variants={navItemVariants}
+                  >
+                    <Button 
+                      component={Link} 
+                      to="/contact"
+                      startIcon={<ContactSupportIcon />}
+                      sx={{ 
+                        color: 'white', 
+                        mx: 1,
+                        opacity: isActive('/contact') ? 1 : 0.8,
+                        borderBottom: isActive('/contact') ? '2px solid #3b82f6' : 'none',
+                        borderRadius: 0,
+                        '&:hover': {
+                          backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                          opacity: 1
+                        }
+                      }}
+                    >
+                      Contacto
+                    </Button>
+                  </motion.div>
                 </>
               )}
             </Box>
@@ -249,7 +303,7 @@ const Header = () => {
             <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
               {isLoggedIn ? (
                 <motion.div
-                  custom={2}
+                  custom={4}
                   initial="hidden"
                   animate="visible"
                   variants={navItemVariants}
@@ -339,9 +393,9 @@ const Header = () => {
                   </Menu>
                 </motion.div>
               ) : (
-                <>
+                <Box>
                   <motion.div
-                    custom={2}
+                    custom={4}
                     initial="hidden"
                     animate="visible"
                     variants={navItemVariants}
@@ -365,7 +419,7 @@ const Header = () => {
                   </motion.div>
                   
                   <motion.div
-                    custom={3}
+                    custom={5}
                     initial="hidden"
                     animate="visible"
                     variants={navItemVariants}
@@ -384,7 +438,7 @@ const Header = () => {
                       Registrarse
                     </Button>
                   </motion.div>
-                </>
+                </Box>
               )}
             </Box>
 
@@ -412,7 +466,7 @@ const Header = () => {
                 }}
               >
                 {isLoggedIn ? (
-                  <>
+                  <Box>
                     <Box sx={{ px: 2, py: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Avatar
                         src={userData?.avatar_url || null}
@@ -455,6 +509,24 @@ const Header = () => {
                     </MenuItem>
                     <MenuItem 
                       component={Link} 
+                      to="/about" 
+                      onClick={handleMobileMenuClose}
+                      sx={{ gap: 2 }}
+                    >
+                      <InfoIcon fontSize="small" color="primary" />
+                      Sobre Nosotros
+                    </MenuItem>
+                    <MenuItem 
+                      component={Link} 
+                      to="/contact" 
+                      onClick={handleMobileMenuClose}
+                      sx={{ gap: 2 }}
+                    >
+                      <ContactSupportIcon fontSize="small" color="primary" />
+                      Contacto
+                    </MenuItem>
+                    <MenuItem 
+                      component={Link} 
                       to="/profile" 
                       onClick={handleMobileMenuClose}
                       sx={{ gap: 2 }}
@@ -467,9 +539,9 @@ const Header = () => {
                       <LogoutIcon fontSize="small" color="error" />
                       Cerrar Sesión
                     </MenuItem>
-                  </>
+                  </Box>
                 ) : (
-                  <>
+                  <Box>
                     <MenuItem 
                       component={Link} 
                       to="/login" 
@@ -488,7 +560,7 @@ const Header = () => {
                       <AccountCircleIcon fontSize="small" color="primary" />
                       Registrarse
                     </MenuItem>
-                  </>
+                  </Box>
                 )}
               </Menu>
             </Box>
